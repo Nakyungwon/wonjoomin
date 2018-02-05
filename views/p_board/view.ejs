@@ -1,0 +1,1041 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>원주민공포만화</title>
+    <% include ../parts/option %>
+    <link href="http://netdna.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.css" rel="stylesheet"> 
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.js"></script> 
+    <script src="http://netdna.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.js"></script> 
+    <link href="/javascripts/dist/summernote.css" rel="stylesheet">
+    <script src="/javascripts/dist/summernote.min.js"></script>
+    <!-- include summernote-ko-KR -->
+    <script src="/javascripts/dist/lang/summernote-ko-KR.js"></script>
+    <script src="/javascripts/common.js"></script>
+    <script type="text/javascript">
+    $(document).ready(function(){
+        var del_upt_flg = '';
+
+        /*댓글 세팅*/
+        initComment();
+
+        /*이미지 크기조정*/
+        $('#search').click(function(){
+            location.href = '/p_board/list?sm_menu_id=<%= sm_menu_id %>&search='+$('#search_val').val();
+        })
+
+        /*검색어 버튼*/
+        $('#search_val').keyup(function(e){
+            if(e.keyCode == '10'){
+                location.href = '/p_board/list?sm_menu_id=<%= sm_menu_id %>&search='+$('#search_val').val();
+            }
+        })
+        
+        /*검색어 엔터*/
+        $("#f_admin_del").click(function(){
+            var user_grade      = '<%= user_info==null?null:user_info.user_grade %>'
+            del_upt_flg = 'D'
+            if(user_grade =='BRAHMAN'){
+                if(confirm('해당 게시물을 관리자 삭제 하시겠습니까?')){
+                    delUptAjax(del_upt_flg,'R');
+                }
+            }
+        })
+
+        $("#f_del").click(function(){
+            var user_id         = '<%= user_info==null?null:user_info.user_id %>'
+            var user_grade      = '<%= user_info==null?null:user_info.user_grade %>'
+            var board_user_id   = '<%= boardOne[0].user_id %>'
+            var user_yn         = '<%= boardOne[0].user_yn %>'
+            del_upt_flg = 'D'
+            
+            if(user_grade =='BRAHMAN'){
+                if(confirm('해당 게시물을 삭제 하시겠습니까?')){
+                    delUptAjax(del_upt_flg,'N');
+                }
+            }else if(user_yn ==  'N'){
+                $("#modal_modal").modal("show");
+            }else if(user_id == board_user_id){
+                if(confirm('해당 게시물을 삭제 하시겠습니까?')){
+                    delUptAjax(del_upt_flg,'N');
+                }
+            }
+        })
+        
+        $("#f_upt").click(function(){
+            var user_id         = '<%= user_info==null?null:user_info.user_id %>'
+            var user_grade      = '<%= user_info==null?null:user_info.user_grade %>'
+            var board_user_id   = '<%= boardOne[0].user_id %>'
+            var user_yn         = '<%= boardOne[0].user_yn %>'
+            del_upt_flg = 'U'
+
+            if(user_grade =='BRAHMAN'){
+                delUptAjax(del_upt_flg,'');
+            }else if(user_yn == 'N'){
+                $("#modal_modal").modal("show");
+            }else if(user_id == board_user_id || user_grade =='BRAHMAN'){
+                delUptAjax(del_upt_flg,'');
+            }
+        })
+
+        $("#r_del").click(function(){
+            delUptAjax(del_upt_flg,'N');
+        })
+
+        $("#sb_comment_reg").click(function(){
+            var menuId           = '<%= boardOne[0].sm_menu_id%>';
+            var boardSeq         = '<%= boardOne[0].board_seq %>';
+            var logInfo          = '<%= user_info %>'
+            var commentContent   = $('#comment_content');
+            var commentNickName  = null;
+            var commnetPassword  = null;
+            if(!isValid(commentContent,'댓글 내용')){
+                return false;
+            }
+
+            if(!logInfo){
+                commentNickName  = $('#comment_nick_name');
+                commnetPassword  = $('#comment_password');
+                
+
+                if(!isValid(commentNickName,'댓글 닉네임')){
+                    return false;
+                }
+
+                if(!isValid(commnetPassword,'댓글 비밀번호')){
+                    return false;
+                }
+            }
+
+            var jcontent = {
+                            k_menuId            : menuId
+                            ,k_boardSeq         : boardSeq
+                            ,k_commentNickName  : commentNickName==null?null:commentNickName.val()
+                            ,k_commnetPassword  : commnetPassword==null?null:commnetPassword.val()
+                            ,k_commentContent   : commentContent.val()
+                            ,k_recommentParentSeq : null
+                            ,sm_menu_id         : menuId
+                            ,board_seq          : boardSeq
+                         }
+
+            parma_obj = JSON.stringify(jcontent);
+
+            $.ajax({
+                type:"post",
+                data : parma_obj,
+                url:"/p_board/comment_edit",
+                dataType : "json",
+                contentType: "application/json; charset=utf-8",
+                success : function(data) {
+                    commentList(data);
+                    commentContent.val('');
+                    if(commentNickName != null){
+                        commentNickName.val('');
+                        commnetPassword.val('');
+                    }
+                     
+                },
+                error : function(e) {
+                    alert('댓글 등록 error')
+                }
+            });
+        })
+
+        /*댓글 삭제버튼 클릭시 비밀번호 입력란 show*/
+        var g_comment_seq = ''
+        $(document).on("click",'.comment-del',function(e){
+            var log_userId = '<%= user_info==null?null:user_info.user_id%>'
+            var log_grade  = '<%= user_info==null?null:user_info.user_grade%>'
+            g_comment_seq = $(this).attr('data-seq');
+            if((isValid2(log_userId) && log_userId == $(this).attr('data-user')) || log_grade == 'BRAHMAN'){
+                if(confirm('삭제 하시겠습니까?')){
+                    commentDel('Y',g_comment_seq,'N');
+                }
+            }else{
+                $('#div_del_comment').show();
+                $('#div_del_comment').css('top',$(this).offset().top+18)
+                $('#div_del_comment').css('left',$(this).offset().left-165)
+            }
+        })
+
+        $(document).on("click",'.comment-admin-del',function(e){
+            var log_userId = '<%= user_info==null?null:user_info.user_id%>'
+            var log_grade  = '<%= user_info==null?null:user_info.user_grade%>'
+            g_comment_seq = $(this).attr('data-seq');
+            if(log_grade == 'BRAHMAN'){
+                if(confirm('관리자 삭제를 하시겠습니까?')){
+                    commentDel('Y',g_comment_seq,'R');
+                }
+            }
+        })
+
+        $('body').click(function(e){
+            if( !$('#div_del_comment').has(e.target).length ) $('#div_del_comment').hide();
+            if( !$('#div_user').has(e.target).length ) $('#div_user').hide();
+        });
+
+        /*비밀번호 삭제버튼클릭시 수행*/
+        $('#sb_comment_del').click(function(){
+            commentDel('N',g_comment_seq,'N');
+            $('#div_del_comment').hide();
+        })
+
+        $(document).on( "click",'.re_comment', function() {
+            $(".add_one").remove(); // 생성된 애들 삭제
+            var logInfo         = '<%= user_info %>'
+            var log_nickname    = '<%= user_info==null?"":user_info.nick_name %>'
+            var parent          = $(this).attr('data-parent')
+            var child           = $(".hid_child");
+            var recomment_area  = null;
+            var edtRecommdStr = ''
+            for(var i = 0 ; i < $(this).parents().length; i ++){
+                if($(this).parents().eq(i).prop("tagName") == 'TR'){
+                    recomment_area = $(this).parents().eq(i);
+                    break;
+                }
+            }
+            for(var i = 0 ; i < child.length ; i ++ ){
+                if(parent == child.eq(i).val()){
+                    recomment_area = recomment_area.next()
+                }
+            }
+           
+            edtRecommdStr += '<tr class="add_one" id="add_one">'
+            edtRecommdStr +=    '<td>'
+            edtRecommdStr +=        '<div class="well"> '
+            edtRecommdStr +=            '<div class="col-sm-2">'
+            edtRecommdStr +=                '<div class="form-group-onejumin" style="margin-top: 5%">'
+            if(!isValid2(logInfo)){
+                edtRecommdStr +=                    '<input type="text"     name="recomment_nick_name"   id="recomment_nick_name"   class="form-control-onejumin" placeholder="닉네임">'
+                edtRecommdStr +=                    '<input type="password" name="recomment_password"    id="recomment_password"    class="form-control-onejumin" placeholder="비밀번호">'
+            }else{
+                edtRecommdStr +=                    '<label><h6 style="font-weight: bold">'+log_nickname+'</h6></label>' 
+            }
+            edtRecommdStr +=                    '<input type="hidden"   name="recomment_parent_seq"  id="recomment_parent_seq"  class="form-control-onejumin" value="'+parent+'" />'
+            edtRecommdStr +=                '</div>'
+            edtRecommdStr +=            '</div>'
+            edtRecommdStr +=            '<div class="col-sm-9">'
+            edtRecommdStr +=                '<div class="form-group-onejumin">'
+            edtRecommdStr +=                    '<textarea class="form-control-onejumin" style="height: 75px;" name="recomment_content"  id="recomment_content"></textarea>'
+            edtRecommdStr +=                '</div>'
+            edtRecommdStr +=            '</div>'
+            edtRecommdStr +=            '<div class="text-right div_board_btn">'
+            edtRecommdStr +=                '<a id="sb_recomment_reg" class="btn btn-default">등록</a>'
+            edtRecommdStr +=            '</div>'
+            edtRecommdStr +=        '</div>'
+            edtRecommdStr +=    '</td>'
+            edtRecommdStr +='</tr>'
+
+            recomment_area.after(edtRecommdStr);
+            //$(window).scrollTop($('#add_one').offset().top-200);
+        });
+
+        /*댓글등록시 다시 조회해서 뿌림*/
+        $(document).on("click","#sb_recomment_reg",function(){
+            var menuId              = '<%= boardOne[0].sm_menu_id%>';
+            var boardSeq            = '<%= boardOne[0].board_seq %>';
+            var logInfo             = '<%= user_info %>'
+            var recommentNickName   = null;
+            var recommnetPassword   = null;
+            var recommentContent    = $('#recomment_content');
+
+            if(!isValid(recommentContent,'댓글 내용')){
+                return false;
+            }
+            var recommentParentSeq = $('#recomment_parent_seq');
+
+            if(!logInfo){
+                recommentNickName = $('#recomment_nick_name');
+                recommnetPassword = $('#recomment_password');
+
+                if(!isValid(recommentNickName,'댓글 닉네임')){
+                    return false;
+                }
+
+                if(!isValid(recommnetPassword,'댓글 비밀번호')){
+                    return false;
+                }
+            }
+            var jcontent = {
+                            k_menuId                : menuId
+                            ,k_boardSeq             : boardSeq
+                            ,k_commentNickName      : recommentNickName==null?null:recommentNickName.val()
+                            ,k_commnetPassword      : recommnetPassword==null?null:recommnetPassword.val()
+                            ,k_commentContent       : recommentContent.val()
+                            ,k_recommentParentSeq   : recommentParentSeq.val()
+                            ,sm_menu_id             : menuId
+                            ,board_seq              : boardSeq
+                        }
+
+            parma_obj = JSON.stringify(jcontent);
+
+            $.ajax({
+                type:"post",
+                data : parma_obj,
+                url:"/p_board/comment_edit",
+                dataType : "json",
+                contentType: "application/json; charset=utf-8",
+                async:false,
+                success : function(data) {
+                    commentList(data);
+                },
+                error : function(e) {
+                    alert('댓글 등록 error')
+                }
+            });
+        })
+
+        /********************************** 메인글 ******************************************/
+        //추천 누를시
+        $(document).on("click",'.up-onejumin',function(){
+            upAndDownContent('G');
+        })
+
+        //반대 누를시
+        $(document).on("click",'.down-onejumin',function(){
+            var logYn = '<%= user_info %>'
+            if(!isValid2(logYn)){
+                if(confirm('로그인이 필요한 서비스 입니다. 로그인하시겠습니까?')){
+                    location.href='/users/login'
+                }else{
+                    return false;
+                }
+            }else{
+                upAndDownContent('B');
+            }
+        })
+
+        //신고 누를시
+        $(document).on("click",'.report-onejumin',function(){
+            var logYn = '<%= user_info %>'
+            if(!isValid2(logYn)){
+                if(confirm('로그인이 필요한 서비스 입니다. 로그인하시겠습니까?')){
+                    location.href='/users/login'
+                }else{
+                    return false;
+                }
+            }else{
+                if(confirm('해당 글을 신고하시겠습니까?')){
+                    upAndDownContent('R');
+                }
+            }
+        })
+        /********************************** 메인글  끝***************************************/
+
+        /********************************** 댓글 대댓글 ******************************************/
+        //추천 누를시
+        $(document).on("click",'.up_comment-onejumin',function(){
+            upAndDownComment($(this),'G');
+        })
+
+        //반대 누를시
+        $(document).on("click",'.down_comment-onejumin',function(){
+            var logYn = '<%= user_info %>'
+            if(!isValid2(logYn)){
+                if(confirm('로그인이 필요한 서비스 입니다. 로그인하시겠습니까?')){
+                    location.href='/users/login'
+                }else{
+                    return false;
+                }
+            }
+            upAndDownComment($(this),'B');
+        })
+
+        //신고 누를시
+        $(document).on("click",'.report_comment-onejumin',function(){
+            var logYn = '<%= user_info %>'
+            if(!isValid2(logYn)){
+                if(confirm('로그인이 필요한 서비스 입니다. 로그인하시겠습니까?')){
+                    location.href='/users/login'
+                }else{
+                    return false;
+                }
+            }
+            if(confirm('해당 글을 신고하시겠습니까?')){
+                upAndDownComment($(this),'R');
+            }
+        })
+        /********************************** 댓글 대댓글******************************************/
+
+         /*********************************  유저 클릭시 ******************************************/
+        var each_seq     = ''
+        var each_userYn  = ''
+        var each_mainYn  = ''
+        $(document).on('click','.user_area',function(){
+            var user_grade = '<%= user_info==null?null:user_info.user_grade %>'
+            var user_info  = '<%= user_info %>'
+            if(isValid2(user_info)){
+                    if(user_grade == 'BRAHMAN'){
+                        $('#div_user').show();
+                        $('#div_user').css('top',$(this).offset().top+18);
+                        $('#div_user').css('left',$(this).offset().left-2);
+                    
+                    each_seq     = $(this).attr('data-seq')
+                    each_userYn  = $(this).attr('data-userYn')
+                    each_mainYn  = $(this).attr('mainYn')
+                    if(userYn == 'N'){
+                        // $('#block_user').hide();
+                        $('#message_edith').hide();
+                    }
+                }
+            }
+        })
+
+        $('#message_edith').click(function(){
+
+        })
+        /*********** 유저차단 *******/
+        $('#block_user').click(function(){
+            var j_param = {
+                            k_each_seq      : each_seq,
+                            k_each_mainYn   : each_mainYn,
+                            k_each_userYn   : each_userYn,
+                            k_menuId        : '<%= boardOne[0].sm_menu_id%>',
+                            k_boardSeq      : '<%= boardOne[0].board_seq %>'
+                        }
+
+            parma_obj = JSON.stringify(j_param);
+
+            $.ajax({
+                type:"post",
+                data : parma_obj,
+                url:"/admin/board_user_block ",
+                dataType : "json",
+                contentType: "application/json; charset=utf-8",
+                async:false,
+                success : function(data) {
+                    alert(data.msg)
+                    $('#div_user').hide();
+                },
+                error : function(e) {
+                    alert('차단 error');
+                }
+            });
+        })
+
+        $("#board_ward").click(function(){
+            var obj = $(this);
+            var menuId             = '<%= boardOne[0].sm_menu_id%>';
+            var boardSeq           = '<%= boardOne[0].board_seq %>';
+            var j_param = {
+                        k_menuId               : menuId
+                        ,k_boardSeq            : boardSeq
+            }
+
+            var parma_obj = JSON.stringify(j_param);
+            
+            $.ajax({
+                type:"post",
+                data : parma_obj,
+                url:"/p_board/warding ",
+                dataType : "json",
+                contentType: "application/json; charset=utf-8",
+                async:false,
+                success : function(data) {
+                    if(data.rtnFlg != null && data.rtnFlg == "ins"){
+                        obj.attr("class","glyphicon glyphicon-star pointer-onejumin")
+                        $('#ward_msg').css('top',obj.offset().top+30);
+                        $('#ward_msg').css('left',obj.offset().left-210);
+                        $('#ward_msg').slideDown(500);
+                        setTimeout(function(){
+                            $('#ward_msg').slideUp(500);
+                        },3000);
+                    }else if(data.rtnFlg != null && data.rtnFlg == "del"){
+                        $('#ward_msg').slideUp(500);
+                        obj.attr("class","glyphicon glyphicon-star-empty pointer-onejumin")
+                    }else{
+                        alert(data.rtnMsg);
+                        return false
+                    }
+                },
+                error : function(e) {
+                    alert('와드 error')
+                }
+            });
+        })
+    });
+    function commentDel(p_userYn,p_comment_seq,use_yn){
+        var menuId             = '<%= boardOne[0].sm_menu_id%>';
+        var boardSeq           = '<%= boardOne[0].board_seq %>';
+        var delCommentPassword = null;
+        if(p_userYn == 'N'){
+            delCommentPassword = $('#del_comment_password')
+            if(!isValid(delCommentPassword,'비밀번호')){
+                return false;
+            }
+        }
+        var jcomment = {
+                        k_menuId               : menuId
+                        ,k_boardSeq            : boardSeq
+                        ,k_delCommentPassword  : delCommentPassword==null?null:delCommentPassword.val()
+                        ,k_commentSeq          : p_comment_seq
+                        ,sm_menu_id            : menuId
+                        ,board_seq             : boardSeq
+                        ,k_use_yn              : use_yn
+                    }
+
+        parma_obj = JSON.stringify(jcomment);
+
+        $.ajax({
+            type:"post",
+            data : parma_obj,
+            url:"/p_board/comment_del ",
+            dataType : "json",
+            contentType: "application/json; charset=utf-8",
+            async:false,
+            success : function(data) {
+                if(data.sFlag){
+                    alert('삭제되었습니다.');
+                    commentList(data);
+                }else{
+                    alert('입력된 비밀번호가 다릅니다.');
+                }
+            },
+            error : function(e) {
+                alert('댓글 삭제 error')
+            }
+        });
+    }
+    
+    /* 댓글 추천 반대 신고*/
+    function upAndDownComment(obj,p_upDown){
+        var menuId      = '<%= boardOne[0].sm_menu_id%>';
+        var boardSeq    = '<%= boardOne[0].board_seq %>';
+        var commentSeq  =  $(obj).attr("data-seq");
+
+        var jupdwon = {
+                        k_menuId        : menuId
+                        ,k_boardSeq     : boardSeq
+                        ,k_commentSeq   : commentSeq
+                        ,k_upDown       : p_upDown 
+                        ,sm_menu_id     : menuId
+                        ,board_seq      : boardSeq
+                    }
+
+        parma_obj = JSON.stringify(jupdwon);
+
+        $.ajax({
+            type:"post",
+            data : parma_obj,
+            url:'/p_board/comment_up_down',
+            dataType : "json",
+            contentType: "application/json; charset=utf-8",
+            async:false,
+            success : function(data) {
+                if(data.msg == 'ERR'){
+                    if(p_upDown == 'R'){
+                        alert('이미 신고를 하셨습니다.');
+                    }else{
+                        alert('이미 추천/반대를 하셨습니다.');
+                    }
+                }else{
+                    if(p_upDown == 'R'){
+                        alert('신고 되었습니다');
+                    }else{
+                        commentList(data);
+                    }
+                }
+            },
+            error : function(e) {
+                alert('추천 반대 error')
+            }
+        });
+    }
+    /* 메인 글 추천 반대 신고*/
+    function upAndDownContent(p_upDown){
+        var menuId      = '<%= boardOne[0].sm_menu_id%>';
+        var boardSeq    = '<%= boardOne[0].board_seq %>';
+
+        var jupdwon = {
+                        k_menuId       : menuId
+                        ,k_boardSeq    : boardSeq
+                        ,k_upDown      : p_upDown 
+                    }
+
+        parma_obj = JSON.stringify(jupdwon);
+
+        $.ajax({
+            type:"post",
+            data : parma_obj,
+            url:'/p_board/content_up_down',
+            dataType : "json",
+            contentType: "application/json; charset=utf-8",
+            async:false,
+            success : function(data) {
+                var rtnUp   = $(".rtn_up")
+                var rtnDown = $(".rtn_down")
+                if(data.msg == 'ERR'){
+                    if(p_upDown == 'R'){
+                        alert('이미 신고를 하셨습니다.');
+                    }else{
+                        alert('이미 추천/반대를 하셨습니다.');
+                    }
+                }else{
+                    if(p_upDown == 'R'){
+                        alert('신고되었습니다.');
+                    }else{
+                        for(var i = 0 ; i < rtnUp.length ; i ++){
+                        rtnUp.eq(i).html(data.upDonwCntList[0].good_count)
+                        }
+
+                        for(var i = 0 ; i < rtnDown.length ; i ++){
+                            rtnDown.eq(i).html(data.upDonwCntList[0].bad_count)
+                        }
+                    }
+                }
+            },
+            error : function(e) {
+                alert('추천 반대 error')
+            }
+        });
+    }
+    /*댓글 등록,삭제후 다시 그리는 함수*/
+    function commentList(data){
+        if(data.errMsg!=null){
+            alert(data.errMsg);
+            return false;
+        }
+        /*댓글 대댓글 댓글 등록후 다시그리는 부분*/
+        var log_userId      = '<%= user_info==null?"":user_info.user_id %>';
+        var log_userGrade   = '<%= user_info==null?"":user_info.user_grade %>';
+        var commentStr      = ''
+        
+        for(var i = 0 ; i < data.commentBestList.length ; i ++){
+            commentStr += '<tr class="active">'
+            commentStr += '<td class="text-left" >'
+            if(data.commentBestList[i].p_level == 1){
+                commentStr += '<div style="padding-left: 10px;">'
+                commentStr += '       <div><span><strong class="user_area" data-seq='+data.commentBestList[i].comment_seq+' data-userYn='+data.commentBestList[i].user_yn+'>'+xxsBlock(data.commentBestList[i].nick_name)
+                if(data.commentBestList[i].user_img != null){
+                    commentStr += ' <img src="/images/rank/'+data.commentBestList[i].user_img+'" alt=""/>';
+                }
+                commentStr += ' </strong></span>';
+                commentStr += '       <span style="color: #aaa !important"><span class="glyphicon glyphicon-time" style="font-size: 12px"></span>'+data.commentBestList[i].create_date + ' | ' + data.commentBestList[i].create_ip +'</span>'
+                commentStr += '</div>'
+                commentStr += '       <div><span class="label label-danger">BEST</span> '+ xxsBlock(data.commentBestList[i].comment_content)+'</div>'
+                commentStr += '       <div>'
+                commentStr += '             <span class="btn-link pointer-onejumin up_comment-onejumin"   data-seq='+data.commentBestList[i].comment_seq+'>[추천<img src="/images/up.png">'+data.commentBestList[i].good_gbn+']</span>'
+                commentStr += '             <span class="btn-link pointer-onejumin down_comment-onejumin" data-seq='+data.commentBestList[i].comment_seq+'>[반대<img src="/images/down.png">'+data.commentBestList[i].bad_gbn +' ]</span>'
+                commentStr += '             <span class="btn-link pointer-onejumin report_comment-onejumin" data-seq='+data.commentBestList[i].comment_seq+'>[신고]</span>'
+                if(data.commentBestList[i].user_yn == 'N' || log_userId == data.commentBestList[i].user_id || log_userGrade == 'BRAHMAN'){
+                    commentStr += '             <span class="btn-link pointer-onejumin comment-del" data-seq='+data.commentBestList[i].comment_seq+' data-user='+data.commentBestList[i].user_id+'>[삭제]</span>'
+                }
+                if(log_userGrade == 'BRAHMAN'){
+                    commentStr += '             <span class="btn-link pointer-onejumin comment-admin-del" data-seq='+data.commentBestList[i].comment_seq+' data-user='+data.commentBestList[i].user_id+' >[관리자 삭제]</span>'
+                }
+                commentStr += '       </div>'
+                commentStr += ' </div>'
+            }else{
+                commentStr += '   <div style="padding-left: 30px;">'
+                commentStr += '       <div> <img src="/images/recomment.png"><span><strong class="user_area" data-seq='+data.commentBestList[i].comment_seq+' data-userYn='+data.commentBestList[i].user_yn+'>'+xxsBlock(data.commentBestList[i].nick_name)
+                if(data.commentBestList[i].user_img != null){
+                    commentStr += ' <img src="/images/rank/'+data.commentBestList[i].user_img+'" alt=""/>';
+                }
+                commentStr += ' </strong></span>';
+                commentStr += '    <span style="color: #aaa !important"><span class="glyphicon glyphicon-time" style="font-size: 12px"></span>'+data.commentBestList[i].create_date + ' | ' + data.commentBestList[i].create_ip +'</span>'
+                commentStr += '   </div>'
+                commentStr += '       <div class="div_next-onejumin" style="padding-left: 15px;"><span class="label label-danger">BEST</span> '+ xxsBlock(data.commentBestList[i].comment_content)+'</div>'
+                commentStr += '       <div style="padding-left: 15px;">'
+                commentStr += '             <span class="btn-link pointer-onejumin up_comment-onejumin"   data-seq='+data.commentBestList[i].comment_seq+'>[추천<img src="/images/up.png">'+data.commentBestList[i].good_gbn+']</span>'
+                commentStr += '             <span class="btn-link pointer-onejumin down_comment-onejumin" data-seq='+data.commentBestList[i].comment_seq+'>[반대<img src="/images/down.png">'+data.commentBestList[i].bad_gbn +' ]</span>'
+                commentStr += '             <span class="btn-link pointer-onejumin report_comment-onejumin" data-seq='+data.commentBestList[i].comment_seq+'>[신고]</span>'
+                if(data.commentBestList[i].user_yn == 'N' || log_userId == data.commentBestList[i].user_id || log_userGrade == 'BRAHMAN'){
+                    commentStr += '             <span class="btn-link pointer-onejumin comment-del" data-seq='+data.commentBestList[i].comment_seq+' data-user='+data.commentBestList[i].user_id+' >[삭제]</span>'
+                }
+                if(log_userGrade == 'BRAHMAN'){
+                    commentStr += '             <span class="btn-link pointer-onejumin comment-admin-del" data-seq='+data.commentBestList[i].comment_seq+' data-user='+data.commentBestList[i].user_id+' >[관리자 삭제]</span>'
+                }
+                commentStr += '       </div>'
+                commentStr += '   </div>'
+            }
+            commentStr += "</td>"
+            commentStr += "</tr>"
+        }
+
+        for(var i = 0 ; i < data.commentList.length ; i ++){
+            commentStr += '<tr>'
+            commentStr += '<td class="text-left" >'
+            if(data.commentList[i].p_level == 1){
+                commentStr += '<div style="padding-left: 10px;">'
+                commentStr += '       <div><span><strong class="user_area" data-seq='+data.commentList[i].comment_seq+' data-userYn='+data.commentList[i].user_yn+'>'+xxsBlock(data.commentList[i].nick_name)
+                if(data.commentList[i].user_img != null){
+                    commentStr += ' <img src="/images/rank/'+data.commentList[i].user_img+'" alt=""/>';
+                }
+                commentStr += ' </strong></span>';
+                commentStr += '       <span style="color: #aaa !important"><span class="glyphicon glyphicon-time" style="font-size: 12px"></span>'+data.commentList[i].create_date + ' | ' + data.commentList[i].create_ip +'</span>'
+                commentStr += '</div>'
+                commentStr += '       <div>'+ xxsBlock(data.commentList[i].comment_content)+'</div>'
+                commentStr += '       <div>'
+                commentStr += '             <span class="btn-link pointer-onejumin up_comment-onejumin"   data-seq='+data.commentList[i].comment_seq+'>[추천<img src="/images/up.png">'+data.commentList[i].good_gbn+']</span>'
+                commentStr += '             <span class="btn-link pointer-onejumin down_comment-onejumin" data-seq='+data.commentList[i].comment_seq+'>[반대<img src="/images/down.png">'+data.commentList[i].bad_gbn +' ]</span>'
+                commentStr += '             <span class="btn-link pointer-onejumin report_comment-onejumin" data-seq='+data.commentList[i].comment_seq+'>[신고]</span>'
+                commentStr += '             <span class="btn-link pointer-onejumin re_comment" data-parent='+data.commentList[i].comment_seq+'>[답글]</span>'
+                if(data.commentList[i].user_yn == 'N' || log_userId == data.commentList[i].user_id || log_userGrade == 'BRAHMAN'){
+                    commentStr += '             <span class="btn-link pointer-onejumin comment-del" data-seq='+data.commentList[i].comment_seq+' data-user='+data.commentList[i].user_id+'>[삭제]</span>'
+                }
+                if(log_userGrade == 'BRAHMAN'){
+                    commentStr += '             <span class="btn-link pointer-onejumin comment-admin-del" data-seq='+data.commentList[i].comment_seq+' data-user='+data.commentList[i].user_id+' >[관리자 삭제]</span>'
+                }
+                commentStr += '       </div>'
+                commentStr += ' </div>'
+            }else{
+                commentStr += '   <div style="padding-left: 30px;">'
+                commentStr += '       <div> <img src="/images/recomment.png"><span><strong class="user_area" data-seq='+data.commentList[i].comment_seq+' data-userYn='+data.commentList[i].user_yn+'>'+xxsBlock(data.commentList[i].nick_name)
+                if(data.commentList[i].user_img != null){
+                    commentStr += ' <img src="/images/rank/'+data.commentList[i].user_img+'" alt=""/>';
+                }
+                commentStr += ' </strong></span>';
+                commentStr += '    <span style="color: #aaa !important"><span class="glyphicon glyphicon-time" style="font-size: 12px"></span>'+data.commentList[i].create_date + ' | ' + data.commentList[i].create_ip +'</span>'
+                commentStr += '   </div>'
+                commentStr += '       <div class="div_next-onejumin" style="padding-left: 15px;">'+ xxsBlock(data.commentList[i].comment_content)+'</div>'
+                commentStr += '       <div style="padding-left: 15px;">'
+                commentStr += '             <span class="btn-link pointer-onejumin up_comment-onejumin"   data-seq='+data.commentList[i].comment_seq+'>[추천<img src="/images/up.png">'+data.commentList[i].good_gbn+']</span>'
+                commentStr += '             <span class="btn-link pointer-onejumin down_comment-onejumin" data-seq='+data.commentList[i].comment_seq+'>[반대<img src="/images/down.png">'+data.commentList[i].bad_gbn +' ]</span>'
+                commentStr += '             <span class="btn-link pointer-onejumin report_comment-onejumin" data-seq='+data.commentList[i].comment_seq+'>[신고]</span>'
+                if(data.commentList[i].user_yn == 'N' || log_userId == data.commentList[i].user_id || log_userGrade == 'BRAHMAN'){
+                    commentStr += '             <span class="btn-link pointer-onejumin comment-del" data-seq='+data.commentList[i].comment_seq+' data-user='+data.commentList[i].user_id+' >[삭제]</span>'
+                }
+                if(log_userGrade == 'BRAHMAN'){
+                    commentStr += '             <span class="btn-link pointer-onejumin comment-admin-del" data-seq='+data.commentList[i].comment_seq+' data-user='+data.commentList[i].user_id+' >[관리자 삭제]</span>'
+                }
+                commentStr += '             <input type="hidden" class="hid_child" value='+data.commentList[i].parent_comment_seq+'>'
+                commentStr += '       </div>'
+                commentStr += '   </div>'
+            }
+            commentStr += "</td>"
+            commentStr += "</tr>"
+        }
+        $('#comment_area').html(commentStr);
+        $('#comment_length').html(data.commentList.length);
+    }
+
+    function initComment(){
+        var menuId      = '<%= boardOne[0].sm_menu_id%>';
+        var boardSeq    = '<%= boardOne[0].board_seq %>';
+
+        var json_obj = {
+                            k_menuId        : menuId
+                            ,k_boardSeq     : boardSeq
+                            ,sm_menu_id     : menuId
+                            ,board_seq      : boardSeq
+                        }
+
+        parma_obj = JSON.stringify(json_obj);
+
+        $.ajax({
+            type:"post",
+            data : parma_obj,
+            url:"/p_board/comment_list",
+            dataType : "json",
+            contentType: "application/json; charset=utf-8",
+            async:false,
+            success : function(data) {
+                commentList(data);
+            },
+            error : function(e) {
+                alert('초기댓글 error')
+            }
+        });
+    }
+
+    function delUptAjax(p_del_upt_flg,admin_yn){
+        var menuId      = '<%= boardOne[0].sm_menu_id%>';
+        var boardSeq    = '<%= boardOne[0].board_seq %>';
+        var password    = $('#password').val();
+        var url_obj     = '';
+
+        var jdel = {
+                        k_menuId: menuId
+                        ,k_boardSeq: boardSeq
+                        ,k_password : password
+                        ,k_admin_yn : admin_yn
+                    }
+
+        parma_obj = JSON.stringify(jdel);
+
+        if(p_del_upt_flg == 'D'){
+            url_obj = '/p_board/del'
+        }else{
+            url_obj = '/p_board/upt'
+        }
+                
+        $.ajax({
+            type:"post",
+            data : parma_obj,
+            url:url_obj,
+            dataType : "json",
+            contentType: "application/json; charset=utf-8",
+            async:false,
+            success : function(data) {
+                if(data.sFlag){
+                    if(p_del_upt_flg == 'D'){
+                        alert('삭제되었습니다.');
+                        location.href = '/p_board/list?sm_menu_id='+menuId
+                    }else{
+                        // location.href = '/p_board/modify?sm_menu_id='+menuId+'&board_seq='+boardSeq
+                        $("#f_modify").submit();
+                    }
+                    
+                }else{
+                    alert('입력된 비밀번호가 다릅니다.');
+                }
+            },
+            error : function(e) {
+                alert('삭제 error')
+            }
+        });
+    }
+  </script>
+  </head>
+  <body>
+    <% include ../parts/head %>
+    <% include ../parts/carousel %>
+    <div class="div_body_width">
+        <% include ../parts/menu %>
+        <form class="form-horizontal" id="f_modify" action="/board/modify" method="post">
+            <input type="hidden" name="sm_menu_id" value="<%= boardOne[0].sm_menu_id%>">
+            <input type="hidden" name="board_seq"  value="<%= boardOne[0].board_seq %>">
+            <div class="container-onejumin">
+                <div class="div_view-onejumin" style="font-size: 17px; font-weight: bold; padding-left:5px;"><%= boardOne[0].board_title %></div>
+                <div class="well bs-component" style="border-top: 1px solid rgba(54, 47, 33, 0.226); padding: 10px 0 0 5px;">
+                        <div class="form-group" style="margin-left:0; margin-right:0">
+                            <div class="col-lg-9">
+                                <div class="div_view-onejumin"><span class="glyphicon glyphicon-user" style="font-size: 12px"></span></div>
+                                <div class="div_view-onejumin"><div class="user_area" data-seq="<%= boardOne[0].board_seq%>" data-userYn="<%= boardOne[0].user_yn%>" mainYn="Y"><%= boardOne[0].nick_name%> 
+                                <% if(boardOne[0].user_img != null ) {%>
+                                    <img src="/images/rank/<%=boardOne[0].user_img%>" alt=""/>
+                                <% } %>
+                                </div></div><font class="font_view-onejumin">|</font>
+                                <div class="div_view-onejumin"><span class="glyphicon glyphicon-time" style="font-size: 12px"></span><span> <%= boardOne[0].create_date%></span></div><font class="font_view-onejumin">|</font>
+                                <div class="div_view-onejumin"><span class="glyphicon glyphicon-eye-open" style="font-size: 12px"></span><span> <%= boardOne[0].board_hits%></span></div><font class="font_view-onejumin">|</font>
+                                <div class="div_view-onejumin"><span><%= boardOne[0].create_ip%></span></div>
+                            </div>
+                        </div>
+                </div>
+            </div>
+            <div class="container">
+                <% if(user_info != null){ %>
+                    <div class="row">
+                        <span style="float:right!important; font-size: 30px; margin:0 20px 0 0" class="<%= wardYn=='Y'?'glyphicon glyphicon-star pointer-onejumin':'glyphicon glyphicon-star-empty pointer-onejumin'%>" id="board_ward"></span>
+                    </div>
+                <% } %>
+                <div class="row">
+                    <div class="col-lg-11 col-lg-offset-0"  style="padding-bottom: 15px">
+                        <div class="form-group">
+                        <div style="text-align: center">
+                            <% imgeList.forEach(function(e){%>
+                            <img src="<%= e.img_path%>" style="max-width: 100%; margin: 3px 0 10px 0 ">
+                            <% })%>
+                        </div style="word-break:break-all;">
+                        <%- boardOne[0].board_content%>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="container text-center" style="border-top : 1px solid rgb(238, 238, 238); padding: 3% 0 0 3%; ">
+                        추천수가 많으면 베스트글로 등록됩니다.
+                        <br>
+                        <br>
+                        <div style="display:table; margin: 0 auto;">
+                            <div style="display: table-cell; position: relative">
+                                <img src="/images/recomand.png" class="cursor-onejumin up-onejumin">
+                                <div class="div_up_down-onejumin rtn_up"><%= boardOne[0].good_count%></div>
+                            </div>
+                            <div style="display: table-cell; position: relative">
+                                <img src="/images/opposite.png" class="cursor-onejumin down-onejumin" >
+                                <div class="div_up_down-onejumin rtn_down"><%= boardOne[0].bad_count%></div>
+                            </div>
+                            <br>
+                        </div>
+                        <img src="/images/report.png" class="cursor-onejumin report-onejumin">
+                        <br>
+                        <br>
+                        성적인이미지포함/게시판과맞지않는글/과도한욕설은 신고 때려주세요.
+                    </div>
+                </div>
+            </div>
+        </form>
+            <div class="container-onejumin">
+                <div class="text-right div_board_btn">
+                    <% if(boardOne[0].user_yn == 'N' || (user_info==null?'':user_info.user_id == boardOne[0].user_id) || (user_info==null?'':user_info.user_grade == 'BRAHMAN')){%>
+                        <% if(user_info==null?'':user_info.user_grade == 'BRAHMAN') {%>
+                            <a id='f_admin_del' class="btn btn btn-warning">관리자 삭제</a>
+                        <% } %>
+                    <a id='f_del' class="btn btn btn-danger">삭제</a>
+                    <a id='f_upt' class="btn btn-primary">수정</a>
+                    <% } %>
+                    <a type="button" class="btn btn-secondary" href="javascript:history.back()">취소</a>
+                </div>
+           
+                <div class="text-left div_board_btn" style="font-size: 15px">
+                    <i class="fa fa-comments" aria-hidden="true"></i> 전체 댓글 수 <span id="comment_length"></span>
+                </div>
+                <table class="table table_view-onejumin table_comment-onejumin">
+                    <tbody id="comment_area">
+                        <!-- 댓글영역 -->
+                    </tbody>
+                </table>
+                 <div class = "well">
+                    <div class="col-sm-2">
+                        <div class="form-group-onejumin" style="margin-top: 5%;">
+                        <% if(!user_info){%>
+                        <input type="text"     name='comment_nick_name' id='comment_nick_name' class="form-control-onejumin" placeholder="닉네임" maxlength="5">
+                        <input type="password" name='comment_password'  id='comment_password'  class="form-control-onejumin" placeholder="비밀번호" maxlength="12">
+                        <% }else{%>
+                        <label><h6 style="font-weight: bold"><%= user_info.nick_name %></h6></label>
+                        <% } %>
+                        </div>
+                    </div>
+                    <div class="col-sm-9">
+                        <div class="form-group-onejumin">
+                            <textarea class="form-control-onejumin" style="height: 75px;" name='comment_content'  id='comment_content' maxlength="100" placeholder="100자이내"></textarea>
+                        </div>
+                    </div>
+                    <div class="text-right div_board_btn">
+                        <a id='sb_comment_reg' class="btn btn-default">등록</a>
+                    </div>
+                </div>
+
+                <div class="container">
+                    <div class="pull-right">
+                        <div class="form-group">
+                            <input type="text" class="form-control-static" placeholder="검색(제목 + 내용)" name='search' value='<%=search%>' id='search_val'>
+                            <button type="submit" class="btn btn-default" id='search'>검색</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="container tb_pc-onejumin">
+                    <div class="row">
+                        <% boardList.forEach(function(e){ %>
+                            <div class="col-sm-6 col-md-3">
+                                <div class="thumbnail" style='cursor: pointer;' onclick="location.href='/p_board/view?sm_menu_id=<%= e.sm_menu_id %>&board_seq=<%= e.board_seq %>'">
+                                <div style="width:100%; height:190px;">
+                                    <img src="<%= e.img_path%>" alt="이미지 에러" width="100%" height="100%">
+                                </div>
+                                    <div class="caption">
+                                        <div class="div_dot-onejumin">
+                                            <% if(e.comment_cnt != 0){%>
+                                                <span style="float: right"><span class="badge"><%=e.comment_cnt%></span></span>
+                                            <% } %>
+                                            <span><%=e.board_title%></span>
+                                        </div>
+                                        <div class="text-left"><span><%= e.nick_name %> 
+                                        <% if(e.user_img != null ) {%>
+                                            <img src="/images/rank/<%= e.user_img %>" alt=""/> 
+                                        <% } %>
+                                        </span></div>
+                                        <div class="text-left"><span><%= e.create_date %></span>
+                                            <span>[ <%= e.good_gbn %> - <%= e.bad_gbn %> ]</span><span> 조회수</span><span> <%= e.board_hits %></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        <% })%>
+                        <% if(boardList.length == 0){ %>
+                            <div class="text-center">표시할 내용이 없습니다.</div>
+                        <% }%>
+                    </div>
+                </div>
+            
+                <table class="table table-striped table-hover tb_mobile-onejumin" style="table-layout: fixed">
+                    <colgroup>
+                        <col width='40%'>
+                        <col width='60%'>
+                    </colgroup>
+                    <tbody>
+                        <% boardList.forEach(function(e){ %>
+                            <tr>
+                                <td class='text-left' style='cursor: pointer;' onclick="location.href='/p_board/view?sm_menu_id=<%= e.sm_menu_id %>&board_seq=<%= e.board_seq %>'">
+                                    <img class="img-mb" src="<%= e.img_path%>" width="100%">
+                                </td>
+                                <td>
+                                    <div>
+                                        <div class='div_dot-onejumin'>
+                                            <% if(e.comment_cnt != 0){%>
+                                                <span style="float: right"><span class="badge"><%=e.comment_cnt%></span></span>
+                                            <% } %>
+                                            <span><%=e.board_title%></span>
+                                        </div>
+                                        <div><span>[ <%= e.good_gbn %> - <%= e.bad_gbn %> ]</span><span> 조회수</span><span> <%= e.board_hits %></span></div>
+                                        <div><span><%= e.create_date %></span> <span><%= e.nick_name %>
+                                        <% if(e.user_img != null ) {%>
+                                            <img src="/images/rank/<%= e.user_img %>" alt=""/> 
+                                        <% } %>
+                                        </span></div>  
+                                    </div>
+                                </td>
+                            </tr>
+                        <% }) %>
+                        <% if(boardList.length == 0){ %>
+                            <tr>
+                                <td colspan="2"><div class="text-center">표시할 내용이 없습니다.</div></td>
+                            </tr>
+                        <% }%>
+                    </tbody>
+                </table>
+        
+                <div class="text-center">
+                    <ul class="pagination pagination-sm">
+                        <li><a href='/p_board/list?pg=<%= pg-5 < 1 ? pg-(5+((pg-5))-1) : pg-5+(5-(pg%5==0?5:pg%5)) %>&sm_menu_id=<%= sm_menu_id %>&search=<%=search%>'>&laquo;</a></li>
+                        <% for(var i = start-1 ; i < (start+4 > end-1 ? end-1 : start +3 ) + 1  ; i ++ ) {%>
+                        <li class="<%=i+1==pg?'active':''%>">
+                            <% if(pg - 1 == i ){ %>
+                                <a href='/p_board/list?pg=<%=i+1%>&sm_menu_id=<%= sm_menu_id %>&search=<%=search%>'><%= i+1 %></a>
+                            <% } else if(pg-1 != i){ %>
+                                <a href='/p_board/list?pg=<%=i+1%>&sm_menu_id=<%= sm_menu_id %>&search=<%=search%>'><%= i+1 %></a>
+                            <% } %>
+                        </li>
+                        <% } %>
+                        <li><a href='/p_board/list?pg=<%= (pg+5 > end) ? pg+(5-((pg+5)-end)) : pg+(5-((pg%5==0?5:pg%5)-1)) %>&sm_menu_id=<%= sm_menu_id %>&search=<%=search%>'>&raquo;</a></li>
+                    </ul>
+                </div>
+            </div>
+
+        </div>
+        <div class="modal" id="modal_modal">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                        <h4 class="modal-title">비밀번호</h4>
+                    </div>
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <div class="col-lg-10">
+                                <input type="password" class="form-control" id="password" name='password' value=''>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">취소</button>
+                        <button type="button" id="r_del" class="btn btn btn-danger" data-dismiss="modal">확인</button>
+                    </div>
+                    </div>
+                </div>
+            </div>
+            <div class="div_delArea" id="div_del_comment">
+                <div class="form-group-onejumin" style="margin: 0px">
+                    <div class="input-group">
+                        <div class="div_cell-onejumin"><input type="password" class="form-control-onejumin" id="del_comment_password" maxlength="10" placeholder="비밀번호" value=""></div>
+                        <div class="div_cell-onejumin"><span id='sb_comment_del' class="btn btn-danger btn-sm">삭제</span></div>
+                    </div>
+                </div>
+            </div>
+            <div class="div_userArea" id="div_user">
+                <ul class="list-group" style="margin:0">
+                    <li class="list-group-item" style="padding:2px 2px 2px 2px" id="message_edith">
+                    <span class="tag tag-default tag-pill float-xs-right" >쪽지보내기</span>
+                    </li>
+                    <li class="list-group-item" style="padding:2px 2px 2px 2px" id="block_user">
+                    <span class="tag tag-default tag-pill float-xs-right" >차단하기</span>
+                    </li>
+                </ul>
+            </div>
+            <div class="alert alert-dismissible alert-success" id='ward_msg'>
+                <strong><p>와드를 설치 하셨습니다. </p><p>와드박은글에서 확인 가능합니다.</p></strong>
+            </div>
+    </div>
+    <% include ../parts/footer %>
+  </body>
+</html>

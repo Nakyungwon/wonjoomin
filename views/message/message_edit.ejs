@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>원주민공포만화</title>
+    <% include ../parts/option %>
+    <link href="http://netdna.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.css" rel="stylesheet"> 
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.js"></script> 
+    <script src="http://netdna.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.js"></script> 
+    <link href="/javascripts/dist/summernote.css" rel="stylesheet">
+    <script src="/javascripts/dist/summernote.min.js"></script>
+    <!-- include summernote-ko-KR -->
+    <script src="/javascripts/dist/lang/summernote-ko-KR.js"></script>
+    <script src="/javascripts/common.js"></script>
+    <script type="text/javascript">
+        function searchArea(p_idNick){
+            $('#div_mail_search').html('');
+            if(p_idNick.trim().length > 1 ){
+                var jIdNick = {
+                            k_idNick  : p_idNick
+                            }
+
+                parma_obj = JSON.stringify(jIdNick);
+
+                $.ajax({
+                    type:"post",
+                    data : parma_obj,
+                    url:"/message/search",
+                    dataType : "json",
+                    contentType: "application/json; charset=utf-8",
+                    async:false,
+                    success : function(data) {
+                        var str = '';
+                        if(data.searchList.length > 0){
+                            for(var i = 0 ; i < data.searchList.length ; i ++ ){
+                                str += '<div class="cursor-onejumin search_result" data-id='+data.searchList[i].nick_name+'><h6 class="search_id">'+data.searchList[i].nick_name+'</h6></div>'
+                            }
+                            $('#div_mail_search').show();
+                            $('#div_mail_search').html(str);
+                        }
+                    },
+                    error : function(e) {
+                        alert('사용자 search err')
+                    }
+                });
+            }
+        }
+        $(function(){
+            $('#nick_name').keyup(function(e){
+                var idNick = $(this).val().trim();
+                var p_nickName = '<%=nick_name%>'
+                $('#div_mail_search').css('top',$(this).offset().top+37);
+                $('#div_mail_search').css('left',$(this).offset().left);
+                $('#div_mail_search').css('width',$(this).width());
+                if(p_nickName.length == 0 ){
+                    searchArea(idNick)
+                }
+            })
+
+            $('#nick_name').focus(function(){
+                var idNick = $(this).val().trim();
+                var p_nickName = '<%=nick_name%>'
+                $('#div_mail_search').css('top',$(this).offset().top+37);
+                $('#div_mail_search').css('left',$(this).offset().left);
+                $('#div_mail_search').css('width',$(this).width());
+                if(p_nickName.length == 0 ){
+                    searchArea(idNick)
+                }
+            })
+
+            $('body').click(function(e){
+                if(e.target.getAttribute('class') != 'search_id' && e.target.getAttribute('id') != 'nick_name'){
+                    $('#div_mail_search').hide();
+                }
+            })
+
+            $(document).on( "click",'.search_result', function() {
+                $('#nick_name').val($(this).attr("data-id"));
+                $('#div_mail_search').hide();
+            })
+
+            $('#message_content').summernote({
+                height: 300,                 
+                minHeight: 300,             
+                maxHeight: 300,
+                lang:'ko-KR',
+                toolbar: [
+                            // [groupName, [list of button]]
+                            ['style', ['bold', 'italic', 'underline', 'clear']],
+                            ['font', ['strikethrough', 'superscript', 'subscript']],
+                            ['fontsize', ['fontsize']],
+                            ['color', ['color']],
+                            ['para', ['ul', 'paragraph']],
+                        ],
+                disableDragAndDrop: true
+            });
+
+            $('#sb_reg').click(function(){
+                var nickName                        = $('#nick_name');
+                var messageTitle                    = $('#message_title');
+                var messageContent                  = $('#message_content');
+               
+              
+                if(!isValid(nickName,'받는 사람')){
+                    return false;
+                }
+
+                if(!isValid(messageTitle,'쪽지 제목')){
+                    return false;
+                }
+                /*게시물 내용은 summernote이므로 공통함수 못씀*/
+                if(!isValidSummerNote(messageContent,'쪽지 내용')){
+                    return false;
+                }
+                
+                $('#f_edit').submit();
+            })
+        })
+
+        function sendFile(file) {
+            var data = new FormData();
+            data.append("file"          , file);
+            $.ajax({
+                type: "POST",
+                url: "/board/up_img",
+                type: 'POST',
+                data: data,
+                contentType: false,
+                processData: false, // Don't process the files
+                success: function(data) {
+                    $('#board_content').summernote("insertImage", data.url);
+                }
+            });
+        }
+    </script>
+  </head>
+  <body>
+    <% include ../parts/head %>
+    <% include ../parts/carousel %>
+    <div class="div_body_width">
+        <div class="page-header">
+        <h3 class="breadcrum_sm_menu" >쪽지함</h3><p class="text-muted breadcrum_sm_sub">쪽지함 입니다.</p>
+        </div>
+        <form class="form-horizontal" id='f_edit' action="/message/message_edit" method="post">
+            <div class="container">
+                <div class="row">
+                    <div class="col-lg-9 col-lg-offset-1">
+                        <div class="form-group">
+                            <label class="col-lg-2 control-label">받는사람</label>
+                            <div class="col-lg-10">
+                                <input type="text" class="form-control" id="nick_name" name='nick_name' maxlength="10" autocomplete="off" value='<%=nick_name%>' <%=nick_name!=null?"readonly":"" %>>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-lg-9 col-lg-offset-1">
+                        <div class="form-group">
+                            <label class="col-lg-2 control-label">제목</label>
+                            <div class="col-lg-10">
+                                <input type="text" class="form-control" id="message_title" name='message_title' maxlength="50">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row" style="margin-top:20px;">
+                    <div class="col-lg-9 col-lg-offset-1">
+                        <div class="form-group">
+                                <textarea id="message_content" name="message_content"></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="text-right div_board_btn">
+                    <a href="javascript:history.back()" class="btn btn btn-danger">취소</a>
+                    <a id='sb_reg' class="btn btn-primary">작성</a>
+                </div>
+            </div>
+        </form>
+        <div class="div_mail_search" id="div_mail_search">
+        </div>
+    </div>
+    <% include ../parts/footer %>
+  </body>
+</html>

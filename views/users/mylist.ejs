@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>원주민공포만화</title>
+    <% include ../parts/option %>
+    <link href="http://netdna.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.css" rel="stylesheet"> 
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.js"></script> 
+    <script src="http://netdna.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.js"></script> 
+    <link href="/javascripts/dist/summernote.css" rel="stylesheet">
+    <script src="/javascripts/dist/summernote.min.js"></script>
+    <!-- include summernote-ko-KR -->
+    <script src="/javascripts/dist/lang/summernote-ko-KR.js"></script>
+    <script src="/javascripts/common.js"></script>
+    <script type="text/javascript">
+    $(function(){
+        $('#search').click(function(){
+            location.href = '/users/mylist?search='+$('#search_val').val();
+        })
+        $('#search_val').keyup(function(e){
+            if(e.keyCode == '13'){
+                location.href = '/users/mylist?search='+$('#search_val').val();
+            }
+        })
+    })
+    </script>
+  </head>
+  <body>
+    <% include ../parts/head %>
+    <% include ../parts/carousel %>
+    <div class="div_body_width">
+        <ul class="breadcrumb">
+                    <li class="active">원주민 공포만화</li>
+                    <li >내가 쓴 글 보기</li>
+                </ul>
+        <div class="page-header">
+            <h3>내가 쓴 글 보기</h3><p class="text-muted">내가 쓴 글이 모여있는 곳 입니다.</p>
+        </div>
+
+        <div class="pull-right">
+            <div class="form-group">
+                <input type="text" class="form-control-static" placeholder="검색(제목 + 내용)" name='search' value='<%=search%>' id='search_val'>
+                <button type="submit" class="btn btn-default" id='search'>검색</button>
+            </div>
+        </div>
+        
+        <table class="table table-striped table-hover tb_pc-onejumin">
+            <colgroup>
+                <col width='10%'>
+                <col width='50%'>
+                <col width='10%'>
+                <col width='10%'>
+                <col width='10%'>
+                <col width='10%'>
+            </colgroup>
+            <thead>
+                <tr>
+                    <th class='text-center'>구분</th>
+                    <th class='text-center'>제목</th>
+                    <th class='text-center'>글쓴이</th>
+                    <th class='text-center'>등록일</th>
+                    <th class='text-center'>추천</th>
+                    <th class='text-center'>조회</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% boardList.forEach(function(e){ %>
+                    <tr>
+                        <td class='text-center'><%= e.sm_menu_abb %></td>
+                        <% if(e.menu_gbn == 'N') {%>
+                        <td class='text-left' style='cursor: pointer' onclick="location.href='/board/view?sm_menu_id=<%= e.sm_menu_id %>&board_seq=<%= e.board_seq %>'"><a><%= e.board_title %></a></td>
+                        <% }else{%>
+                        <td class='text-left' style='cursor: pointer' onclick="location.href='/p_board/view?sm_menu_id=<%= e.sm_menu_id %>&board_seq=<%= e.board_seq %>'"><a><%= e.board_title %></a></td>
+                        <%}%>
+                        <td class='text-center'><%= e.nick_name %></td>
+                        <td class='text-center'><%= e.create_date %></td>
+                        <td class='text-center'><%= e.good_gbn %> - <%= e.bad_gbn %></td>
+                        <td class='text-center'><%= e.board_hits %></td>
+                    </tr>
+                <% }) %>
+                <% if(boardList.length == 0){ %>
+                    <tr>
+                        <td colspan='6'><div class="text-center">표시할 내용이 없습니다.</div></td>
+                    </tr>
+                <% }%>
+            </tbody>
+        </table>
+
+        <table class="table table-striped table-hover tb_mobile-onejumin">
+            <tbody>
+                <% boardList.forEach(function(e){ %>
+                    <tr>
+                        <% if(e.menu_gbn == 'N') {%>
+                        <td class='text-left' style='cursor: pointer' onclick="location.href='/board/view?sm_menu_id=<%= e.sm_menu_id %>&board_seq=<%= e.board_seq %>'"><span><%= e.sm_menu_abb %> </span><a><%= e.board_title %></a>
+                            <div style="font-size:11px; margin-top: -5px" ><%= e.nick_name %> | <%= e.create_date %> [ <%= e.board_hits %> / <%= e.good_gbn %> - <%= e.bad_gbn %> ] </div>
+                        </td>
+                        <% }else{%>
+                        <td class='text-left' style='cursor: pointer' onclick="location.href='/p_board/view?sm_menu_id=<%= e.sm_menu_id %>&board_seq=<%= e.board_seq %>'"><span><%= e.sm_menu_abb %> </span><a><%= e.board_title %></a>
+                            <div style="font-size:11px; margin-top: -5px" ><%= e.nick_name %> | <%= e.create_date %> [ <%= e.board_hits %> / <%= e.good_gbn %> - <%= e.bad_gbn %> ] </div>
+                        </td>
+                        <% } %>
+                    </tr>
+                <% }) %>
+                <% if(boardList.length == 0){ %>
+                    <tr>
+                        <td><div class="text-center">표시할 내용이 없습니다.</div></td>
+                    </tr>
+                <% }%>
+            </tbody>
+        </table>
+
+        <div class="text-center">
+            <ul class="pagination pagination-sm">
+                <li><a href='/users/mylist?pg=<%= pg-5 < 1 ? pg-(5+((pg-5))-1) : pg-5+(5-(pg%5==0?5:pg%5)) %>&search=<%=search%>'>&laquo;</a></li>
+                <% for(var i = start-1 ; i < (start+4 > end-1 ? end-1 : start +3 ) + 1  ; i ++ ) {%>
+                <li class="<%=i+1==pg?'active':''%>">
+                    <% if(pg - 1 == i ){ %>
+                        <a href='/users/mylist?pg=<%=i+1%>&search=<%=search%>'><%= i+1 %></a>
+                    <% } else if(pg-1 != i){ %>
+                        <a href='/users/mylist?pg=<%=i+1%>&search=<%=search%>'><%= i+1 %></a>
+                    <% } %>
+                </li>
+                <% } %>
+                <li><a href='/users/mylist?pg=<%= (pg+5 > end) ? pg+(5-((pg+5)-end)) : pg+(5-((pg%5==0?5:pg%5)-1))  %>&search=<%=search%>'>&raquo;</a></li>
+            </ul>
+        </div>
+    </div>
+    <% include ../parts/footer %>
+  </body>
+</html>

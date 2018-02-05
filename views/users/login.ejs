@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>원주민공포만화</title>
+    <% include ../parts/option %>
+    <meta data-n-head="true" charset="utf-8">
+    <meta data-n-head="true" name="viewport" content="width=device-width, user-scalable=yes, initial-scale=1.0, maximum-scale=3.0">
+    <link rel='stylesheet' href='/stylesheets/bootstrap.css' />
+    <link rel='stylesheet' href='/stylesheets/addmystyle.css' />
+    <script src="http://code.jquery.com/jquery-latest.min.js"></script>
+    <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
+    <script src="/javascripts/common.js"></script>
+    <script src="/javascripts/login.js"></script>
+    <script type="text/javascript">
+        $(function(){
+            var errMsg = '<%=errMsg%>'
+            if(errMsg.length > 0){
+                alert(errMsg);
+            }
+            var windowHeight = $( window ).height();
+            var windowWidth = $( window ).width();
+           $("#screenHeight").css("height",windowHeight - $("#footer").outerHeight());
+           if(windowWidth < 768){
+                $("#screenHeight").css("width","100%");
+            }else{
+                $("#screenHeight").css("width","30%");
+            }
+           $( window ).resize(function() {
+                var windowWidthre = $( window ).width();
+                if(windowWidthre < 768){
+                    $("#screenHeight").css("width","100%");
+                }else{
+                    $("#screenHeight").css("width","30%");
+                }
+            });
+
+            $("#logo-onejumin").click(function(){
+                window.location = "/"
+            })
+        })
+    </script>
+  </head>
+  <body>
+    <div class="container">
+        <div id="screenHeight" style="width:30%; margin:0 auto; display: table">
+            <div id="screenHeightInner" style="width:100%; height: 50%; display: table-cell; vertical-align: middle;">
+                <div class="form-group-onejumin" id="logo-onejumin" style="cursor: pointer">
+                    <h4>원주민 공포만화</h4>
+                </div>
+                <div class="form-group" style="padding :15px ; border: 1px solid #e6e6e6; background-color: #fafafa">
+                    <form id="f_login"  action="/users/login" method="post">
+                        <h4>로그인</h4>
+                        <div class="form-group">
+                            <input type="text" class="form-control" id="Email" name="Email" placeholder="이메일">
+                            <span class="text-danger"></span>
+                        </div>
+                        <div class="form-group">
+                            <input type="password" class="form-control" id="user_password" name="password" placeholder="비밀번호">
+                            <span class="text-danger"></span>
+                        </div>
+                        <div class="form-group">
+                            <div class="btn-group">
+                                <input type="checkbox" id="auto_log" name="auto_log"> 자동로그인
+                            </div>
+                        </div>
+                        <div style="margin-top:15px">
+                            <a id="sb_login" class="btn btn-primary btn-block">로그인</a>
+                            <hr>
+                            <h6>계정이없다면 <a href="/users/join">회원가입하기</a><br>
+                            비밀번호를 잊었다면 <a href="#" id='forgot_password'>비밀번호찾기</a></h6>
+                        </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal" id="modal_modal">
+        <div class="modal-dialog">
+            <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title">가입한 Email 입력</h4>
+            </div>
+            <div class="modal-body">
+                <input type="email" class="form-control" id="ret_email" aria-describedby="emailHelp" placeholder="Enter email">
+                <span class="text-danger"></span>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal" id="ret_send">전송</button>
+            </div>
+            </div>
+        </div>
+    </div>
+    <% include ../parts/footer %>
+  </body>
+</html>

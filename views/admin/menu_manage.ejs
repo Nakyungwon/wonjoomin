@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>원주민공포만화</title>
+    <% include ../parts/option %>
+    <meta name="robots" content="noindex">
+    <link href="http://netdna.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.css" rel="stylesheet"> 
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.js"></script> 
+    <script src="http://netdna.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.js"></script> 
+    <link href="/javascripts/dist/summernote.css" rel="stylesheet">
+    <script src="/javascripts/dist/summernote.min.js"></script>
+    <!-- include summernote-ko-KR -->
+    <script src="/javascripts/dist/lang/summernote-ko-KR.js"></script>
+    <script src="/javascripts/common.js"></script>
+    <link type="text/css" rel="stylesheet" href="/javascripts/jsgrid-1.5.3/jsgrid.min.css" />
+    <link type="text/css" rel="stylesheet" href="/javascripts/jsgrid-1.5.3/jsgrid-theme.min.css" />
+    <script type="text/javascript" src="/javascripts/jsgrid-1.5.3/jsgrid.min.js"></script>
+    <script text="text/javascript">
+        var menu_id = ''
+        $(function(){
+            var clients = JSON.parse('<%- menuStr %>')
+            var useYn = [
+                { Name: "Y", Id: "Y" },
+                { Name: "N", Id: "N" }
+            ];
+
+            $("#munu_master").jsGrid({
+                width: "100%",
+                height: "300px",
+        
+                inserting: true,
+                editing: true,
+                sorting: true,
+
+                data: clients,
+        
+                fields: [
+                    { name: "menu_id", type: "text", width: 150, title: "메뉴ID", validate: "required" },
+                    { name: "menu_name", type: "text", title: "메뉴이름"},
+                    { name: "use_yn", type: "select", title: "사용여부", items: useYn, valueField: "Id", textField: "Name" },
+                    { name: "order_pority", type: "number", title: "메뉴순서" },
+                    { type: "control" }
+                ]
+                ,deleteConfirm: "삭제하시겠습니까?"
+                ,noDataContent: "데이터가 없습니다."
+
+                ,rowClick: function(args) {
+                    $.ajax({
+                            type:"post",
+                            data : args.item,
+                            url:"/admin/sm_menu_list",
+                            success : function(list) {
+                                smMenuList(list);
+                                menu_id = args.item.menu_id
+                            },
+                            error : function(e) {
+                                alert('메뉴 생성 실패')
+                            }
+                        });
+                 }
+
+                ,controller: {
+                    loadData    : $.noop,
+                    insertItem  : function(item){
+                        $.ajax({
+                            type:"post",
+                            data : item,
+                            url:"/admin/menu_insert",
+                            success : function(data) {
+                                alert(data.msg);
+                            },
+                            error : function(e) {
+                                alert('메뉴 생성 실패')
+                            }
+                        });
+                    },
+                    updateItem  :function(item) {
+                        $.ajax({
+                            type:"post",
+                            data : item,
+                            url:"/admin/menu_modify",
+                            success : function(data) {
+                                alert(data.msg);
+                            },
+                            error : function(e) {
+                                alert('메뉴 수정 실패')
+                            }
+                        });
+                    },
+                    deleteItem  :$.noop,
+                }
+            });
+        })
+function smMenuList(data){
+    var clients = JSON.parse(data.menuStr)
+
+    var useYn = [
+        { Name: "Y", Id: "Y" },
+        { Name: "N", Id: "N" }
+    ];
+
+    var menuGbn = [
+        { Name: "일반", Id: "N" },
+        { Name: "그림", Id: "P" }
+    ];
+
+    $("#sm_munu").jsGrid({
+        width: "100%",
+        height: "300px",
+
+        inserting: true,
+        editing: true,
+        sorting: true,
+
+        data: clients,
+
+        fields: [
+            { name: "sm_menu_id",       type: "text", width: 150,   title: "메뉴ID", validate: "required"   },
+            { name: "sm_menu_name",     type: "text",               title: "메뉴이름", validate: "required"                       },
+            { name: "sm_menu_abb",      type: "text",               title: "약어"    , validate: "required"                       },
+            { name: "sm_menu_subcript", type: "text", width: 300,   title: "메뉴설명", validate: "required"                       },
+            { name: "use_yn",           type: "select",             title: "사용여부", items: useYn, valueField: "Id", textField: "Name", validate: "required" },
+            { name: "index_yn",         type: "select",             title: "메인포함여부", items: useYn, valueField: "Id", textField: "Name"},
+            { name: "write_yn",         type: "select",             title: "글작성여부", items: useYn, valueField: "Id", textField: "Name"},
+            { name: "star_yn",          type: "select",             title: "별점여부", items: useYn, valueField: "Id", textField: "Name"},
+            { name: "menu_gbn",         type: "select",             title: "게시판형태", items: menuGbn, valueField: "Id", textField: "Name", validate: "required" },
+            { name: "order_pority",     type: "number",             title: "메뉴순서", validate: "required" },
+            { name: "menu_id",          type: "hidden",             title: "대메뉴ID",},
+            { type: "control" }
+        ]
+        ,deleteConfirm: "삭제하시겠습니까?"
+        ,noDataContent: "데이터가 없습니다."
+        ,onItemInserting: function(args) {
+            args.item.menu_id = menu_id
+        }
+        ,   controller: {
+            loadData    : $.noop,
+            insertItem  : function(item){
+                $.ajax({
+                    type:"post",
+                    data : item,
+                    url:"/admin/sm_menu_insert",
+                    success : function(data) {
+                        alert(data.msg);
+                    },
+                    error : function(e) {
+                        alert('메뉴 생성 실패')
+                    }
+                });
+            },
+            updateItem  :function(item) {
+                $.ajax({
+                    type:"post",
+                    data : item,
+                    url:"/admin/sm_menu_modify",
+                    success : function(data) {
+                        alert(data.msg);
+                    },
+                    error : function(e) {
+                        alert('메뉴 수정 실패')
+                    }
+                });
+            },
+            deleteItem  : $.noop
+        }
+    });
+}
+    </script>
+  </head>
+  <body>
+    <% include ../parts/head %>
+    <div class="jumbotron" style="margin:5% 0 0 0;">
+        
+    </div>
+    <div class="div_body_width">
+        <div class="div_preview-onejumin" >
+            <h4>대메뉴</h4>
+        </div>
+        <div id="munu_master"></div>
+        <div class="div_preview-onejumin" >
+            <h4>소메뉴</h4>
+        </div>
+        <div id="sm_munu"></div>
+        </div>
+    </div>
+    <% include ../parts/footer %>
+  </body>
+</html>

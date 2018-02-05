@@ -1,0 +1,137 @@
+<aside class="ko" id="sidebar-box" style="right: -320px;">
+
+    <!-- Head Line -->
+    <div class="sidebar-head bg-navy" style="background-color: rgb(50, 60, 70);"></div>
+  
+    <!-- sidebar Wing -->
+    <div class="sidebar-wing">
+      <!-- sidebar Wing Close -->
+      <div title="닫기" class="sidebar-wing-close sidebar-close en">
+        <i class="fa fa-times"></i>
+      </div>
+    </div>
+  
+    <!-- sidebar Content -->
+    <div class="sidebar-content" id="sidebar-content">
+  
+      <div class="h30"></div>
+      <!-- User -->
+      <div class="sidebar-item" id="sidebar-user" style="display: block;">
+        <div class="sidebar-login">
+    
+      <% if(!user_info){ %>
+      <form id="f_login"  action="/users/login" method="post">
+            <div class="form-group">
+                <div class="input-group">
+                  <span class="input-group-addon"><i class="fa fa-user gray"></i></span>
+                  <input type="text" class="form-control input-sm" id="Email" name="Email" placeholder="이메일">
+                  <span class="text-danger"></span>
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="input-group">
+                  <span class="input-group-addon"><i class="fa fa-lock gray"></i></span>
+                  <input type="password" class="form-control input-sm" id="user_password" name="password" placeholder="비밀번호">
+                  <span class="text-danger"></span>
+                </div>
+            </div>
+            <div class="form-group">
+                  <a id="sb_login" class="btn btn-primary btn-block">로그인</a>
+            </div>
+            </div>
+            <div class="form-group">
+                <div class="btn-group">
+                    <input type="checkbox" id="auto_log" name="auto_log"> 자동로그인
+                </div>
+            </div>
+            <input type="hidden" name="url" id="url" value="">
+      </form>
+      <% } else { %>
+        <div class="profile">
+          <a class="win_memo" title="사진등록">
+            <div class="photo pull-left">
+              <i class="fa fa-user-plus"></i>				
+            </div>
+          </a>
+          <h3><%= user_info.nick_name %></h3>
+          <div class="font-12 text-muted" style="letter-spacing:-1px;">
+            회원
+          </div>
+          <div class="h30"></div>
+          <div class="btn-group btn-group-justified">
+              <a id="sb_login" href="/users/logout" class="btn btn-danger btn-block">로그아웃</a>
+          </div>
+        </div>
+      <% } %>
+      <div class="h10"></div>
+  
+      
+      <!-- Member -->
+      <% if(!user_info){ %>
+      <div class="div-title-underline-thin en">
+        <b>회원</b>
+      </div>
+      <ul class="sidebar-list list-links">
+        <li><a href="/users/join">회원가입</a></li>
+        <li><a href="#" id='forgot_password'>비밀번호찾기</a></li>
+      </ul>
+      <% } else { %>
+      <div class="div-title-underline-thin en">
+        <b>나의메뉴</b>
+      </div>
+      <ul class="sidebar-list list-links">
+        <li><a class="b_color" href="/message/message_list?list=R">쪽지함<span class="badge" id="message_cnt"></span></a></li>
+        <li><a class="b_color" href="/users/myList">내가 쓴글 보기</a></li>
+        <li><a class="b_color" href="/users/wardList">와드 박은글 보기</a></li>
+        <li><a class="b_color" href="/users/myinfo">내정보 수정</a></li>
+        <% if(user_info.user_grade == 'BRAHMAN'){ %>
+          <li><a class="b_color" href="/admin/manage">관리자</a></li>
+        <% } %>
+      </ul>
+      <% } %>
+  </div>
+  
+  <div class="h20"></div>
+  
+      <!-- Service -->
+      <% if(!user_info){ %>
+      <!-- <div class="div-title-underline-thin en">
+        <b>SERVICE</b>
+      </div>
+      
+      <ul class="sidebar-list list-links">
+        <li><a href="http://xn--ok0by4fvj.com/bbs/faq.php">자주하시는 질문(FAQ)</a></li>
+        <li><a href="http://xn--ok0by4fvj.com/bbs/qalist.php">1:1 문의</a></li>
+        <li><a href="http://xn--ok0by4fvj.com/bbs/new.php">새글모음</a></li>
+        <li><a href="http://xn--ok0by4fvj.com/bbs/current_connect.php">현재접속자</a></li>
+      </ul> -->
+      <% } else { %>
+      <% } %>
+  </div>
+  
+      <!-- Response -->
+      <div class="sidebar-item" id="sidebar-response" style="display: none;">
+        <div id="sidebar-response-list"></div>
+      </div>
+      <div class="h30"></div>
+    </div>
+
+    <div class="modal" id="modal_forget_password">
+        <div class="modal-dialog">
+            <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title">가입한 Email 입력</h4>
+            </div>
+            <div class="modal-body">
+                <input type="email" class="form-control" id="ret_email" aria-describedby="emailHelp" placeholder="Enter email">
+                <span class="text-danger"></span>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal" id="ret_send">전송</button>
+            </div>
+            </div>
+        </div>
+    </div>
+
+  </aside>

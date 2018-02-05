@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>원주민공포만화</title>
+    <% include ../parts/option %>
+    <link href="http://netdna.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.css" rel="stylesheet"> 
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.js"></script> 
+    <script src="http://netdna.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.js"></script> 
+    <link href="/javascripts/dist/summernote.css" rel="stylesheet">
+    <script src="/javascripts/dist/summernote.min.js"></script>
+    <!-- include summernote-ko-KR -->
+    <script src="/javascripts/dist/lang/summernote-ko-KR.js"></script>
+    <script src="/javascripts/common.js"></script>
+    <script type="text/javascript">
+    $(function(){
+        var errMsg = '<%=errMsg%>'
+        if(errMsg.length > 0){
+            alert(errMsg);
+        }
+        imgSize($('.img-mb'));
+        $('#search').click(function(){
+            location.href = '/p_board/list?sm_menu_id=<%= sm_menu_id %>&search='+$('#search_val').val();
+        })
+        $('#search_val').keyup(function(e){
+            if(e.keyCode == '13'){
+                location.href = '/p_board/list?sm_menu_id=<%= sm_menu_id %>&search='+$('#search_val').val();
+            }
+        })
+
+        $(window).resize(function(){
+            imgSize($('.img-mb'));
+        })
+    })
+    </script>
+  </head>
+  <body>
+    <% include ../parts/head %>
+    <% include ../parts/carousel %>
+    <div class="div_body_width">
+        <% include ../parts/menu %>
+    <div class="container">
+        <div class="pull-right">
+            <div class="form-group">
+                <input type="text" class="form-control-static" placeholder="검색(제목 + 내용)" name='search' value='<%=search%>' id='search_val'>
+                <button type="submit" class="btn btn-default" id='search'>검색</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="container tb_pc-onejumin">
+        <div class="row">
+            <% boardList.forEach(function(e){ %>
+                <div class="col-sm-6 col-md-3">
+                    <div class="thumbnail" style='cursor: pointer;' onclick="location.href='/p_board/view?sm_menu_id=<%= e.sm_menu_id %>&board_seq=<%= e.board_seq %>&sort=<%=sort%>'">
+                    <div style="width:100%; height:190px;">
+                        <img src="<%= e.img_path%>" alt="이미지 에러" width="100%" height="100%">
+                    </div>
+                        <div class="caption">
+                            <div class="div_dot-onejumin">
+                                <% if(e.comment_cnt != 0){%>
+                                    <span style="float: right"><span class="badge"><%=e.comment_cnt%></span></span>
+                                <% } %>
+                                <span><%=e.board_title%></span>
+                            </div>
+                            <div class="text-left"><span><%= e.nick_name %> 
+                            <% if(e.user_img != null ) {%>
+                                <img src="/images/rank/<%= e.user_img %>" alt=""/> 
+                            <% } %>
+                            </span></div>
+                            <div class="text-left"><span><%= e.create_date %></span>
+                                <span>[ <%= e.good_gbn %> - <%= e.bad_gbn %> ]</span><span> 조회수</span><span> <%= e.board_hits %></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            <% })%>
+            <% if(boardList.length == 0){ %>
+                <div class="text-center">표시할 내용이 없습니다.</div>
+            <% }%>
+        </div>
+    </div>
+
+    <table class="table table-striped table-hover tb_mobile-onejumin" style="table-layout: fixed">
+        <colgroup>
+            <col width='40%'>
+            <col width='60%'>
+        </colgroup>
+        <tbody>
+            <% boardList.forEach(function(e){ %>
+                <tr>
+                    <td class='text-left' style='cursor: pointer;' onclick="location.href='/p_board/view?sm_menu_id=<%= e.sm_menu_id %>&board_seq=<%= e.board_seq %>&sort=<%=sort%>'">
+                        <img class="img-mb" src="<%= e.img_path%>" width="100%">
+                    </td>
+                    <td>
+                        <div>
+                            <div class='div_dot-onejumin'>
+                                <% if(e.comment_cnt != 0){%>
+                                    <span style="float: right"><span class="badge"><%=e.comment_cnt%></span></span>
+                                <% } %>
+                                <span><%=e.board_title%></span>
+                            </div>
+                            <div><span>[ <%= e.good_gbn %> - <%= e.bad_gbn %> ]</span><span> 조회수</span><span> <%= e.board_hits %></span></div>
+                            <div><span><%= e.create_date %></span> <span><%= e.nick_name %> 
+                            <% if(e.user_img != null ) {%>
+                                <img src="/images/rank/<%= e.user_img %>" alt=""/> 
+                            <% } %>
+                            </span></div>  
+                        </div>
+                    </td>
+                </tr>
+            <% }) %>
+            <% if(boardList.length == 0){ %>
+                <tr>
+                    <td colspan="2"><div class="text-center">표시할 내용이 없습니다.</div></td>
+                </tr>
+            <% }%>
+        </tbody>
+    </table>
+
+    <div class="container">
+        <div class="text-right">
+            <% if(sort != null && sort == 'P'){ %>
+                <a href="/p_board/list?sm_menu_id=<%= sm_menu_id %>" class="btn btn-outline-danger">등록일순</a>
+            <% }else{ %>
+                <a href="/p_board/list?sm_menu_id=<%= sm_menu_id %>&sort=P" class="btn btn-outline-danger">인기순</a>
+            <% }%>
+            <a href="/p_board/edit?sm_menu_id=<%= sm_menu_id %>" class="btn btn-primary">글쓰기</a>
+        </div>
+    </div>
+
+    <div class="text-center">
+        <ul class="pagination pagination-sm">
+            <li><a href='/p_board/list?pg=<%= pg-5 < 1 ? pg-(5+((pg-5))-1) : pg-5+(5-(pg%5==0?5:pg%5)) %>&sm_menu_id=<%= sm_menu_id %>&search=<%=search%>&sort=<%=sort%>'>&laquo;</a></li>
+            <% for(var i = start-1 ; i < (start+4 > end-1 ? end-1 : start +3 ) + 1  ; i ++ ) {%>
+            <li class="<%=i+1==pg?'active':''%>">
+                <% if(pg - 1 == i ){ %>
+                    <a href='/p_board/list?pg=<%=i+1%>&sm_menu_id=<%= sm_menu_id %>&search=<%=search%>&sort=<%=sort%>'><%= i+1 %></a>
+                <% } else if(pg-1 != i){ %>
+                    <a href='/p_board/list?pg=<%=i+1%>&sm_menu_id=<%= sm_menu_id %>&search=<%=search%>&sort=<%=sort%>'><%= i+1 %></a>
+                <% } %>
+            </li>
+            <% } %>
+            <li><a href='/p_board/list?pg=<%= (pg+5 > end) ? pg+(5-((pg+5)-end)) : pg+(5-((pg%5==0?5:pg%5)-1))  %>&sm_menu_id=<%= sm_menu_id %>&search=<%=search%>&sort=<%=sort%>'>&raquo;</a></li>
+        </ul>
+    </div>
+    </div>
+    <% include ../parts/footer %>
+  </body>
+</html>

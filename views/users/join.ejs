@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>원주민공포만화</title>
+    <% include ../parts/option %>
+    <meta data-n-head="true" charset="utf-8">
+    <meta data-n-head="true" name="viewport" content="width=device-width, user-scalable=yes, initial-scale=1.0, maximum-scale=3.0">
+    <link rel='stylesheet' href='/stylesheets/bootstrap.css' />
+    <link rel='stylesheet' href='/stylesheets/addmystyle.css' />
+    <script src="http://code.jquery.com/jquery-latest.min.js"></script>
+    <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
+    <script src="/javascripts/common.js"></script>
+    <script type="text/javascript">
+        $(function(){
+        var rtn_flg = new Array();
+        var windowHeight = $( window ).height();
+        var windowWidth = $( window ).width();
+           $("#screenHeight").css("height",windowHeight - $("#footer").outerHeight());
+           //$("#screenHeight").css("width",windowWidth);
+           if(windowWidth < 768){
+                $("#screenHeight").css("width","100%");
+            }else{
+                $("#screenHeight").css("width","50%");
+            }
+           $( window ).resize(function() {
+                var windowWidthre = $( window ).width();
+                if(windowWidthre < 768){
+                    $("#screenHeight").css("width","100%");
+                }else{
+                    $("#screenHeight").css("width","50%");
+                }
+            });
+            
+            $("#clause").click(function(){
+                $("#modal_modal").modal("show")
+            })
+
+            $("#logo-onejumin").click(function(){
+                window.location = "/"
+            })
+
+            /*이메일 확인*/
+            $('#Email').blur(function(){
+                rtn_flg[0] = isValidJoin($(this),'1');
+            })
+            /*이메일 확인*/
+
+            $('#nickname').blur(function(){
+                rtn_flg[1] = isValidJoin($(this),'2');
+            })
+
+            $('#password').blur(function(){
+                rtn_flg[2] = isValidJoin($(this),'3');
+            })
+
+            $('#re_password').blur(function(){
+                rtn_flg[3] = isValidJoin($(this),'4');
+            })
+
+            $('#sb_join').click(function(){
+                var email       = $('#Email');
+                var nickname    = $('#nickname');
+                var password    = $('#password');
+                var rePassword  = $('#re_password');
+
+                rtn_flg[0] = isValidJoin(email,'1');
+                rtn_flg[1] = isValidJoin(nickname,'2');
+                rtn_flg[2] = isValidJoin(password,'3');
+                rtn_flg[3] = isValidJoin(rePassword,'4');
+
+                for(var i = 0 ; i < rtn_flg.length ; i ++ ){
+                    if(!rtn_flg[i]){
+                        return false;
+                    }
+                }
+
+                if(!$('#chk_clause').prop("checked")){
+                    alert('약관에 동의 하셔야 가입가능 합니다.');
+                    return false;
+                }
+
+                alert('입력하신 email로 인증메일이 발송됩니다. 2시간 이내에 인증 완료하시기 바랍니다.')
+                $("#f_email_send").submit();
+            })
+        })
+    </script>
+  </head>
+  <body>
+    <div class="container">
+        <div id="screenHeight" style="width:30%; margin:0 auto; display: table">
+            <div id="screenHeightInner" style="width:100%; height: 50%; display: table-cell; vertical-align: middle;">
+                <div class="form-group-onejumin" id="logo-onejumin" style="cursor: pointer">
+                    <h4>원주민 공포만화</h4>
+                </div>
+                <div class="form-group" style="padding :15px ; border: 1px solid #e6e6e6; background-color: #fafafa">
+                    <form class="form-horizontal" id="f_email_send"  action="/users/email_send" method="post">
+                        <fieldset>
+                            <legend>회원가입</legend>
+                            <div class="form-group">
+                                <label for="Email" class="col-lg-2 control-label">Email</label>
+                                <div class="col-lg-10">
+                                    <input type="text" class="form-control" id="Email" name="Email" placeholder="Email">
+                                    <span class="text-danger"></span>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="nickname" class="col-lg-2 control-label">닉네임</label>
+                                <div class="col-lg-10">
+                                    <input type="text" class="form-control" id="nickname" name="nickname" placeholder="닉네임(2~6자리)">
+                                    <span class="text-danger"></span>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="inputPassword" class="col-lg-2 control-label">비밀번호</label>
+                                <div class="col-lg-10">
+                                    <input type="password" class="form-control" id="password" name='password' placeholder="비밀번호(8~12자리)">
+                                    <span class="text-danger"></span>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="inputPassword" class="col-lg-2 control-label">재확인</label>
+                                <div class="col-lg-10">
+                                    <input type="password" class="form-control" id="re_password" name='re_password' placeholder="비밀번호확인">
+                                    <span class="text-danger"></span>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="inputPassword" class="col-lg-2 control-label">이용약관</label>
+                                <div class="col-lg-10">
+                                    <div class="btn-group">
+                                        <a href="#" class="btn btn-default" id="clause">약관보기</a>
+                                    </div>
+                                    <div class="btn-group" style="margin-left:20px">
+                                        <input type="checkbox" id="chk_clause"> 약관동의
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <div class="col-lg-10 col-lg-offset-2 text-right">
+                                    <a href='' type="reset" class="btn btn-default">취소</a>
+                                    <a id='sb_join' type="submit" class="btn btn-primary">이메일 인증</a>
+                                </div>
+                            </div>
+
+                            
+                        </fieldset>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    <% include ../parts/footer %>
+  </body>
+<div class="modal" id="modal_modal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+        <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+            <h4 class="modal-title">이용약관</h4>
+        </div>
+        <div class="modal-body">
+            <pre>
+※ 회원가입 하지 않아도 사이트이용을 하실 수 있습니다.
+
+수집하는 개인정보 항목 
+<일반 회원가입>
+        -아이디(이메일), 비밀번호, 닉네임
+<자동 수집 항목>
+        - 서비스 이용기록(저작물 작성 시 IP), 접속 로그, 접속 IP 정보
+
+수집하는 개인정보 목적
+        - 불량회원의 부정 이용 방지, 통계학적 분석에 사용
+        
+※ 회원탈퇴시  개인정보 파기(게시물은 삭제되지 않음)
+            </pre>
+            
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-default" data-dismiss="modal">닫기</button>
+        </div>
+        </div>
+    </div>
+</div>
+</html>

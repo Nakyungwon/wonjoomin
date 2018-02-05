@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>원주민공포만화</title>
+    <% include ../parts/option %>
+    <link href="http://netdna.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.css" rel="stylesheet"> 
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.js"></script> 
+    <script src="http://netdna.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.js"></script> 
+    <link href="/javascripts/dist/summernote.css" rel="stylesheet">
+    <script src="/javascripts/dist/summernote.min.js"></script>
+    <!-- include summernote-ko-KR -->
+    <script src="/javascripts/dist/lang/summernote-ko-KR.js"></script>
+    <script src="/javascripts/common.js"></script>
+    <script type="text/javascript">
+        $(function(){
+            $( ".star_rating a" ).click(function() {
+                $(this).parent().children("a").removeClass("on");
+                $(this).addClass("on").prevAll("a").addClass("on");
+                var stars = $(".on").length;
+                $("#star").val(Number(stars));
+                return false;
+            });
+            
+            $('#board_content').summernote({
+                height: 300,                 
+                minHeight: 300,             
+                maxHeight: 300,
+                lang:'ko-KR',
+                toolbar: [
+                            // [groupName, [list of button]]
+                            ['style', ['bold', 'italic', 'underline', 'clear']],
+                            ['font', ['strikethrough', 'superscript', 'subscript']],
+                            ['fontsize', ['fontsize']],
+                            ['color', ['color']],
+                            ['imagesize', ['imageSize100', 'imageSize50', 'imageSize25']],
+                            ['para', ['ul', 'paragraph']],
+                            ['table', ['table']],
+                            ['insert', ['link', 'picture','video']],
+                            ['remove', ['removeMedia']]
+
+                        ],
+                callbacks: {
+                    onImageUpload: function(files) {
+                        sendFile(files[0]);
+                    },
+                    onMediaDelete : function($target, editor, $editable) {
+                        deleteFile($target[0].src);
+                    }
+                }
+            });
+
+            $('#sb_mod').click(function(){
+                var boardCategoryCode   = $('#board_category_code');
+                var boardTitle          = $('#board_title');
+                var boardContent        = $('#board_content');
+                var userGrade           ='<%= user_info !=null ? user_info.user_grade : null%>'
+
+                if(userGrade == 'BRAHMAN'){
+                    if(!isValid(boardCategoryCode,'카테고리')){
+                        return false;
+                    }
+                }
+
+                if(!isValid(boardTitle,'게시물 제목')){
+                    return false;
+                }
+
+                /*게시물 내용은 summernote이므로 공통함수 못씀*/
+                if(!isValidSummerNote(boardContent,'게시물 내용')){
+                    return false;
+                }
+                
+                $('#f_mod').submit();
+            })
+        })
+
+        function sendFile(file) {
+            var data = new FormData();
+            if(file.name != "") { 
+                var extPlan = "JPG, PNG, JEPG ,GIF"; 
+                var checkSize = 1024*1024*10;	
+                // 10MB 
+                if(!checkSummerNoteImg(file.name, extPlan)) { 
+                    this.value = ""; 
+                    return; 
+                } 
+            }
+            data.append("file"          , file);
+            data.append("sm_menu_id"          , '<%= sm_menu_id %>');
+            $.ajax({
+                type: "POST",
+                url: "/board/up_img",
+                type: 'POST',
+                data: data,
+                contentType: false,
+                processData: false, // Don't process the files
+                success: function(data) {
+                    if(data.url == null){
+                        alert("10MB 이하의 파일만 첨부가능합니다.");
+                    }else{
+                        $('#board_content').summernote("insertImage", data.url);
+                    }   
+                }
+            });
+        }
+        function deleteFile(filePath) {
+
+            var json_obj = {
+                k_filePath : filePath
+            }
+            var parma_obj = JSON.stringify(json_obj);
+            $.ajax({
+                type:"post",
+                data : parma_obj,
+                url:"/board/del_img ",
+                dataType : "json",
+                contentType: "application/json; charset=utf-8",
+                async:false,
+                success : function(data) {
+                },
+                error : function(e) {
+                    alert('이미지삭제 error')
+                }
+            });
+        }
+    </script>
+  </head>
+  <body>
+    <% include ../parts/head %>
+    <% include ../parts/carousel %>
+    <div class="div_body_width">
+        <% include ../parts/menu %>
+        <form class="form-horizontal" id='f_mod' action="/board/mod" method="post">
+            <div class="container">
+                <input type="hidden" name='sm_menu_id' value='<%=boardOne[0].sm_menu_id %>'>
+                <input type="hidden" name='board_seq' value='<%=boardOne[0].board_seq %>'>
+<% if(user_info && user_info.user_grade =='BRAHMAN'){%>
+                <div class="row">
+                    <div class="col-lg-9 col-lg-offset-1">
+                        <div class="form-group">
+                            <label for="select" class="col-lg-2 control-label">카테고리</label>
+                            <div class="col-lg-10">
+                                <select class="form-control" id="board_category_code" name='board_category_code' >
+                                    <option value='' >선택</option>   
+                                    <option value='G' <%=boardOne[0].board_category_code=="G"?"selected":"" %>>게시판공지</option>
+                                    <option value='N' <%=boardOne[0].board_category_code=="N"?"selected":"" %>>일반</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+<% } %>
+                <div class="row">
+                    <div class="col-lg-9 col-lg-offset-1">
+                        <div class="form-group">
+                            <label class="col-lg-2 control-label">제목</label>
+                            <div class="col-lg-10">
+                                <input type="text" class="form-control" id="board_title" name='board_title' value="<%=boardOne[0].board_title %>" maxlength="65">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+<% if(star_yn == 'Y'){%>
+                    <div class="row">
+                        <div class="col-lg-9 col-lg-offset-1">
+                            <div class="form-group">
+                                <label class="col-lg-2 control-label">별점</label>
+                                <div class="col-lg-10">
+                                    <p class="star_rating">
+                                        <% for(var i = 1 ; i <= 5 ; i ++ ){ %>
+                                            <% if(i <= boardOne[0].star ){ %>
+                                            <a href="#" class="on">★</a>
+                                            <% } else {%>
+                                            <a href="#" >★</a>
+                                            <% } %>
+                                        <% } %>
+                                        <input type="hidden" id="star" name="star" value="<%= boardOne[0].star%>">
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+<% } %>
+
+                <div class="row" style="margin-top:20px;">
+                    <div class="col-lg-9 col-lg-offset-1">
+                        <div class="form-group">
+                            <textarea id="board_content" name="board_content">
+                                <%= boardOne[0].board_content%>
+                            </textarea>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="text-right div_board_btn">
+                    <a href="/board/view?sm_menu_id=<%= boardOne[0].sm_menu_id %>&board_seq=<%= boardOne[0].board_seq %>" class="btn btn btn-danger">취소</a>
+                    <a id="sb_mod" class="btn btn-primary">수정</a>
+                </div>
+            </div>
+        </form>
+    </div>
+    <% include ../parts/footer %>
+  </body>
+</html>

@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>원주민공포만화</title>
+    <meta data-n-head="true" charset="utf-8">
+    <meta data-n-head="true" name="viewport" content="width=device-width, user-scalable=yes, initial-scale=1.0, maximum-scale=3.0">
+    <link rel='stylesheet' href='/stylesheets/bootstrap.css' />
+    <link rel='stylesheet' href='/stylesheets/addmystyle.css' />
+    <link rel="stylesheet" href="/stylesheets/font-awesome-4.7.0/css/font-awesome.css" >
+    <script src="/javascripts/common.js"></script>
+    <script src="/javascripts/login.js"></script>
+    <script type="text/javascript">
+    var sidebar_id;
+    var sidebar_size = "-320px";
+    $(function(){
+    /*대메뉴 호출*/
+      getMenuMaster();
+    /*로그인시 새 쪽지 확인*/
+      newMessage();
+
+      $('.sidebar-close').on('click', function () {
+        var div = $("#sidebar-box");
+        var side = is_sidebar();
+        ani_sidebar(div, side, sidebar_size); 
+        return false;
+      });
+
+      // Sidebar Change
+      $(window).resize(function() {
+        
+        var side = is_sidebar(); 
+        if(side == 'left') {
+          side = 'right';
+        } else {
+          side = 'left';
+        }
+        if($("#sidebar-box").css(side) != '') {
+          $("#sidebar-box").css(side, '');
+        }
+      });
+    });
+
+
+    function sidebar_open(id) {
+    var div = $("#sidebar-box");
+    var side = is_sidebar();
+    var is_div = div.css(side);
+    var is_size;
+    var is_open;
+    var is_show;
+
+    if(id == 'sidebar_id') {
+      if(is_div == sidebar_size) {
+        is_show = false;
+        ani_sidebar(div, side, '0px'); 
+      } else {
+        is_show = false;
+        ani_sidebar(div, side, sidebar_size); 
+      }
+    } else {
+      if(is_div == sidebar_size) {
+        is_show = true;
+        ani_sidebar(div, side, '0px'); 
+      } else {
+        is_show = true;
+      }
+    }
+
+    // Show
+    if(is_show) {
+      $('.sidebar-item').hide();
+
+      if(id == "sidebar-user") {
+        $('.sidebar-common').hide();
+      } else {
+        $('.sidebar-common').show();
+      }
+
+      $('#' + id).show();
+      $('#sidebar-content').scrollTop(0);
+    }
+
+    // Save id
+    sidebar_id = id;
+
+    return false;
+    }
+    function ani_sidebar(div, type, val) {
+      if(type == "left") {
+        div.animate({ left : val }); 
+      } else {
+        div.animate({ right : val }); 
+      }
+    }
+
+    function is_sidebar() {
+          var side;
+          var width = window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
+          if(width > 480) {
+            side = 'right';
+          } else {
+            side = 'left';
+          }
+          return side;
+    }
+
+     function newMessage(){
+      $.ajax({
+          type:"post",
+          data : null,
+          url:"/new_message_yn",
+          dataType : "json",
+          contentType: "application/json; charset=utf-8",
+          success : function(data) {
+            if(data.messageCnt != null){
+              if(data.messageCnt != 0){
+                $("#message_cnt").html(data.messageCnt)
+              }
+            }
+          },
+          error : function(e) {
+              alert('메뉴 마스터 error')
+          }
+      }); 
+     }
+     /* 대메뉴 생성 */
+     function getMenuMaster(){
+      $.ajax({
+          type:"post",
+          data : null,
+          url:"/",
+          dataType : "json",
+          contentType: "application/json; charset=utf-8",
+          success : function(data) {
+              var menuStr = '';
+              menuStr = '<ul class="nav navbar-nav">'
+                        // +'<li ><a href="#">공지사항 <span class="sr-only"></span></a></li>'
+                        
+              for(var i  = 0; i < data.menuList.length ; i ++){
+                menuStr +=  '<li class="dropdown">'
+                            +'<a href="#" class="dropdown-toggle"data-toggle="dropdown" role="button" aria-expanded="false" onClick="getSmMenu(this)" menu_id="'+data.menuList[i].menu_id+'">'+data.menuList[i].menu_name+'<span class="caret"></span></a>'
+                            +'</li>'
+              }
+
+              menuStr += '</ul>'
+              menuStr += '<ul class="nav navbar-nav navbar-right div_pc-onejumin">'
+              if(data.user_info == null){
+                menuStr +='<li><a class="pointer-onejumin" onClick="sidebar_open(&apos;sidebar-user&apos;); retrun"><span class="glyphicon glyphicon-off"></span><span>로그인<span></a></li>'
+              }else{
+                menuStr +='<li><a class="pointer-onejumin" onClick="sidebar_open(&apos;sidebar-user&apos;); retrun"><span>'+data.user_info.nick_name+'<small> 님</small><span></a></li>'
+              }
+              menuStr +='</ul>'
+              $("#bs-example-navbar-collapse-1").html(menuStr);          
+          },
+          error : function(e) {
+              alert('메뉴 마스터 error')
+          }
+      });
+    }
+
+    /* 소메뉴 생성 */
+    function getSmMenu(obj){
+      var menuId = $(obj).attr("menu_id");
+
+      var jmenuId = {
+                        k_menuId: menuId
+                    }
+
+      parma_obj = JSON.stringify(jmenuId);
+
+      $.ajax({
+          type:"post",
+          data : parma_obj,
+          url:"/smMenu",
+          dataType : "json",
+          contentType: "application/json; charset=utf-8",
+          success : function(data) {
+            $(obj).siblings().remove();
+            var smMenuStr = '<ul class="dropdown-menu" role="menu">';
+            for(var i = 0 ; i < data.smMenuList.length ; i ++){
+                if(data.smMenuList[i].menu_gbn == 'N'){
+                  smMenuStr += '<li><a href="/board/list?sm_menu_id='+data.smMenuList[i].sm_menu_id+'">'+data.smMenuList[i].sm_menu_name+'</a></li>';
+                }else if(data.smMenuList[i].menu_gbn == 'P'){
+                  smMenuStr += '<li><a href="/p_board/list?sm_menu_id='+data.smMenuList[i].sm_menu_id+'">'+data.smMenuList[i].sm_menu_name+'</a></li>';
+                }
+              }
+            smMenuStr += '</ul>';
+
+            $(obj).after(smMenuStr);
+          },
+          error : function(e) {
+              alert('세부 메뉴 error')
+          }
+      });
+    }
+    </script>
+  </head>
+  <body>
+    <div class="div_all_width">
+      <div>
+        <nav class="navbar navbar-default navbar-fixed-top">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle collapsed" style="float: left; margin-left: 15px; margin-right: 0" onClick="sidebar_open('sidebar-user'); retrun">
+                <span ><i class="fa fa-user"></i></span>
+              </button>
+              <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+                <span class="sr-only">Toggle navigation</span>
+                <span ><i class=" fa fa-bars"></i></span>
+              </button>
+              <div class="div_logo-onejumin">
+                <a class="navbar-brand" href="/"><img src="/images/logo.png"> </a>
+              </div>
+            </div>
+
+            <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+            </div>
+          </div>
+        </nav>
+    </div>
+
+    <% include ../parts/aside %>
+  </body>
+</html>

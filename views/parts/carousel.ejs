@@ -1,0 +1,33 @@
+<script>
+    $(function(){
+		//$('.carousel').carousel({ interval:3000 });
+		carouselSet()
+		$(window).resize(function(){
+			carouselSet()
+		})
+	})
+	function carouselSet(){
+		var navHeight = $('.navbar-fixed-top').height() + 8
+		$('.carousel-onejumin').css('margin-top', navHeight)
+	}
+</script>
+<div class="carousel-holder carousel-onejumin">
+	<div id="myCarousel" class="carousel slide" data-ride="carousel" data-interval="5000"> 
+		<!-- <ol class="carousel-indicators"> 
+			<li data-target="#myCarousel" data-slide-to="0" class="active"></li> 
+			<li data-target="#myCarousel" data-slide-to="1" class=""></li> 
+			<li data-target="#myCarousel" data-slide-to="2" class=""></li> 
+		</ol>  -->
+		<div class="carousel-inner" role="listbox"> 
+			<div class="item active">
+				<img class="slide-image slide_image-onejumin" src="/images/top1.png">
+			</div> 
+			<!-- <div class="item"> 
+				<img class="slide-image slide_image-onejumin" src="/images/test.png"> 
+			</div> 
+			<div class="item"> 
+				<img class="slide-image slide_image-onejumin" src="/images/test.png">  
+			</div>  -->
+		</div> 
+	</div>
+</div>

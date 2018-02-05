@@ -1,0 +1,52 @@
+<script>
+    $(function(){
+        /*대메뉴 호출*/
+      getbreadcrumb();
+    })
+    function getbreadcrumb(){
+        var smMenuId = '<%= sm_menu_id %>'
+
+        var jmenu = {
+                        k_menuId: smMenuId
+                    }
+
+        parma_obj = JSON.stringify(jmenu);
+
+        $.ajax({
+            type:"post",
+            data : parma_obj,
+            url:'/board/breadcrumb',
+            dataType : "json",
+            contentType: "application/json; charset=utf-8",
+            async:false,
+            success : function(data) {
+                var breadcrum_menu      = $(".breadcrum_menu")
+                var breadcrum_sm_menu   = $(".breadcrum_sm_menu")
+                var breadcrum_sm_sub    = $(".breadcrum_sm_sub")
+
+                for(var i = 0 ; i < breadcrum_menu.length ; i ++){
+                    breadcrum_menu.eq(i).html(data.menuOne[0].menu_name)
+                }
+
+                for(var i = 0 ; i < breadcrum_sm_menu.length ; i ++){
+                    breadcrum_sm_menu.eq(i).html(data.menuOne[0].sm_menu_name)
+                }
+
+                for(var i = 0 ; i < breadcrum_sm_sub.length ; i ++){
+                    breadcrum_sm_sub.eq(i).html(data.menuOne[0].sm_menu_subcript)
+                }
+                
+            },
+            error : function(e) {
+                alert('breadcrumb error')
+            }
+        });
+    }
+</script>
+<ul class="breadcrumb">
+    <li class="active breadcrum_menu"></li>
+    <li class="breadcrum_sm_menu"></li>
+</ul>
+<div class="page-header">
+<h3 class="breadcrum_sm_menu" ></h3><p class="text-muted breadcrum_sm_sub"></p>
+</div>

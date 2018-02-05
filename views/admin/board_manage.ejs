@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>원주민공포만화</title>
+    <% include ../parts/option %>
+    <meta name="robots" content="noindex">
+    <link href="http://netdna.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.css" rel="stylesheet"> 
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.js"></script>
+    <script src="http://netdna.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.js"></script> 
+
+    <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+
+    <link href="/javascripts/dist/summernote.css" rel="stylesheet">
+    <script src="/javascripts/dist/summernote.min.js"></script>
+    <!-- include summernote-ko-KR -->
+    <script src="/javascripts/dist/lang/summernote-ko-KR.js"></script>
+    <script src="/javascripts/common.js"></script>
+    <link type="text/css" rel="stylesheet" href="/javascripts/jsgrid-1.5.3/jsgrid.min.css" />
+    <link type="text/css" rel="stylesheet" href="/javascripts/jsgrid-1.5.3/jsgrid-theme.min.css" />
+    <script type="text/javascript" src="/javascripts/jsgrid-1.5.3/jsgrid.min.js"></script>
+    <script text="text/javascript">
+        $(function(){
+            var frdate = new Date()
+            frdate.setDate(new Date().getDate() - 3);
+            $("#frdate").datepicker({
+                maxDate:0,
+                dateFormat: 'yy-mm-dd'
+            }).datepicker("setDate", new Date(frdate))
+            $("#todate").datepicker({
+                maxDate:0,
+                dateFormat: 'yy-mm-dd'
+            }).datepicker("setDate", new Date())
+
+            setTimeout("searchPostion()",200)
+            $(window).resize(function(){
+                searchPostion();
+            })
+
+            searchClick()
+
+            $('#search').click(function(){
+                var frdate = $('#frdate')
+                var todate = $('#todate')
+                
+                if(!isValid(frdate,'시작날짜')){
+                    return false;
+                }
+                if(!isValid(todate,'종료날짜')){
+                    return false;
+                }
+                var jcontent = {
+                    k_frdate : frdate.val(),
+                    k_todate : todate.val()
+                }
+
+                var parma_obj = JSON.stringify(jcontent);
+
+                $.ajax({
+                    type:"post",
+                    data : parma_obj,
+                    url:"/admin/search_board",
+                    dataType : "json",
+                    contentType: "application/json; charset=utf-8",
+                    success : function(data) {
+                        $("#board_manage").jsGrid({data:JSON.parse(data.menuStr)});
+                        $("#comment_manage").jsGrid({data:JSON.parse(data.commentStr)});
+                    },
+                    error : function(e) {
+                        alert('조회 error')
+                    }
+                });
+            })
+        })
+        function searchPostion(){
+            var divcount= $('.div_preview-onejumin').length
+            for(var i = 0 ; i < divcount ; i ++){
+                $('.div_preview-onejumin').eq(i).width($('#board_manage').width())
+            }
+        }
+
+        function searchClick(){
+            //var clients      = JSON.parse(data.menuStr);
+            //var commentList  = JSON.parse(data.commentStr);
+
+            var useYn = [
+                { Name: "정상"        , Id: "Y" },
+                { Name: "삭제"        , Id: "N" },
+                { Name: "관리자삭제"   , Id: "R" }
+            ];
+
+            var userYn = [
+                { Name: "유저"        , Id: "Y" },
+                { Name: "비유저"      , Id: "N" },
+            ];
+
+            $("#board_manage").jsGrid({
+                width: "1200px",
+                height: "300px",
+
+                //data: clients,
+
+                fields: [
+                    { name: "sm_menu_name",   type: "hidden",   width: "10%", title: "메뉴명"     , validate: "required" },
+                    { name: "sm_menu_id",     type: "hidden",   width: "10%", title: "메뉴ID"     , validate: "required" ,visible:false },
+                    { name: "board_title",    type: "hidden",   width: "40%", title: "제목"       , validate: "required"
+                        ,itemTemplate: function(value,item){
+                            if(item.menu_gbn == 'P'){
+                                return    '<a href="/p_board/view?sm_menu_id='+item.sm_menu_id+'&board_seq='+item.board_seq+'">'+value+'</a>'
+                            }else{
+                                return    '<a href="/board/view?sm_menu_id='+item.sm_menu_id+'&board_seq='+item.board_seq+'">'+value+'</a>'
+                            }
+                        }
+                    },
+                    { name: "board_seq",      type: "hidden",   width: "4%", title: "순번"       , validate: "required"  ,visible:false},
+                    { name: "create_ip",      type: "hidden",   width: "10%", title: "생성IP"     , validate: "required"},
+                    { name: "menu_gbn",       type: "hidden",   visible:false},
+                    { name: "user_yn",        type: "hidden",   width: "4%", title: "계정여부"    , items: userYn,     valueField: "Id", textField: "Name" , validate: "required"},
+                    { name: "use_yn",         type: "select",   width: "7%", title: "사용여부"    , items: useYn,      valueField: "Id", textField: "Name" , validate: "required"},
+                    { name: "create_id",      type: "hidden",   width: "20%", title: "계정ID"      , validate: "required"},
+                    { name: "report_cnt",     type: "hidden",   width: "4%", title: "신고횟수"    , validate: "required"},
+                    { type: "control" ,     deleteButton: false }
+                ],
+        
+                editing: true,
+                sorting: true,
+                paging: true,
+                autoload: true,
+ 
+                pageSize: 10,
+                pageButtonCount: 5,
+
+                deleteConfirm: "삭제하시겠습니까?",
+                noDataContent: "데이터가 없습니다.",
+
+                controller: {
+                    updateItem  :function(item) {
+                        $.ajax({
+                            type:"post",
+                            data : item,
+                            url:"/admin/board_modify",
+                            success : function(data) {
+                                if(data.rtnFlag){
+                                    alert('수정 완료');
+                                }
+                            },
+                            error : function(e) {
+                                alert('메뉴 수정 실패')
+                            }
+                        });
+                    },
+                }
+            });
+
+            $("#comment_manage").jsGrid({
+                width: "1200px",
+                height: "300px",
+        
+                editing: true,
+                sorting: true,
+                paging: true,
+                autoload: true,
+ 
+                pageSize: 10,
+                pageButtonCount: 5,
+
+                //data: commentList,
+
+
+                fields: [
+                    { name: "sm_menu_name",   type: "hidden",   width: "10%", title: "메뉴명"     , validate: "required" },
+                    { name: "sm_menu_id",     type: "hidden",   width: "10%", title: "메뉴ID"     , validate: "required" ,visible:false},
+                    { name: "comment_content",type: "hidden",   width: "40%", title: "댓글내용"   , validate: "required"
+                        ,itemTemplate: function(value,item){
+                            if(item.menu_gbn == 'P'){
+                                return    '<a href="/p_board/view?sm_menu_id='+item.sm_menu_id+'&board_seq='+item.board_seq+'">'+value+'</a>'
+                            }else{
+                                return    '<a href="/board/view?sm_menu_id='+item.sm_menu_id+'&board_seq='+item.board_seq+'">'+value+'</a>'
+                            }
+                        }
+                    },
+                    { name: "board_seq",      type: "hidden",   width: "5%", title: "글순번"      , validate: "required" ,visible:false},
+                    { name: "comment_seq",    type: "hidden",   width: "4%", title: "댓글순번"    , validate: "required" ,visible:false},
+                    { name: "create_ip",      type: "hidden",   width: "10%", title: "생성IP"     , validate: "required"},
+                    { name: "user_yn",        type: "hidden",   width: "4%", title: "계정여부"    , items: userYn,     valueField: "Id", textField: "Name" , validate: "required"},
+                    { name: "use_yn",         type: "select",   width: "7%", title: "사용여부"    , items: useYn,      valueField: "Id", textField: "Name" , validate: "required"},
+                    { name: "create_id",      type: "hidden",   width: "20%", title: "계정ID"     , validate: "required"},
+                    { name: "report_cnt",     type: "hidden",   width: "4%", title: "신고횟수"    , validate: "required" },
+                    { type: "control" ,     deleteButton: false}
+                ]
+                ,deleteConfirm: "삭제하시겠습니까?"
+                ,noDataContent: "데이터가 없습니다."
+
+                ,controller: {
+                    loadData    : $.noop,
+                    insertItem  : $.noop,
+                    updateItem  :function(item) {
+                        $.ajax({
+                            type:"post",
+                            data : item,
+                            url:"/admin/comment_modify",
+                            success : function(data) {
+                                if(data.rtnFlag){
+                                    alert('수정 완료');
+                                }
+                            },
+                            error : function(e) {
+                                alert('메뉴 수정 실패')
+                            }
+                        });
+                    },
+                    deleteItem  :$.noop,
+                }
+            });
+        }
+    </script>
+  </head>
+  <body>
+    <% include ../parts/head %>
+    <div class="jumbotron" style="margin:5% 0 0 0;">
+        
+    </div>
+    <div class="div_body_width">
+           
+        <div class="div_preview-onejumin" >
+            <div class="pull-left">
+                <h4>게시판</h4>
+            </div>
+            <div class="pull-right">
+                <input type="text" class="form-control-static" placeholder="부터" name='frdate' id='frdate'>
+                <span>~</span>
+                <input type="text" class="form-control-static" placeholder="까지" name='todate' id='todate'>
+                <button type="submit" class="btn btn-default" id='search'>검색</button>
+            </div>
+        </div>
+        <div id="board_manage"></div>
+
+        <div class="div_preview-onejumin" >
+            <h4>댓글</h4>
+        </div>
+        <div id="comment_manage"></div>
+    </div>
+    <% include ../parts/footer %>
+  </body>
+</html>

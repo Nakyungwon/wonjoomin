@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>원주민공포만화</title>
+    <% include ../parts/option %>
+    <link href="http://netdna.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.css" rel="stylesheet"> 
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.js"></script> 
+    <script src="http://netdna.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.js"></script> 
+    <link href="/javascripts/dist/summernote.css" rel="stylesheet">
+    <script src="/javascripts/dist/summernote.min.js"></script>
+    <!-- include summernote-ko-KR -->
+    <script src="/javascripts/dist/lang/summernote-ko-KR.js"></script>
+    <script src="/javascripts/common.js"></script>
+    
+    <!-- Important Owl stylesheet -->
+    <link rel="stylesheet" href="/javascripts/carousel/owl-carousel/owl.carousel.css">
+    <!-- Default Theme -->
+    <link rel="stylesheet" href="/javascripts/carousel/owl-carousel/owl.theme.css">
+    <!-- Include js plugin -->
+    <script src="/javascripts/carousel/owl-carousel/owl.carousel.js"></script>
+    <script text="text/javascript">
+        $(function(){
+            var hot_seq = 1;
+            var best_seq = 1;
+            $('.nav-link').eq(0).click();
+            imgSize($('.img-mb'));
+            $(window).resize(function(){
+                imgSize($('.img-mb'));
+            })
+
+            /*초기 베스트 인기글 세팅*/
+            initList()
+
+            $('.photo_resize').click(function(){
+                setTimeout("imgSize($('.img-mb'))",200);
+                /*
+                imgSize($('.img-mb'));
+                */
+            })
+
+            $('#hot_next').click(function(){
+                if(hot_seq  < 3){
+                    hot_seq = hot_seq + 1;
+                    hotList(hot_seq);
+                    $('#hot_page').html(hot_seq+'/3');
+                }
+            })
+
+            $('#hot_prev').click(function(){
+                if(hot_seq  > 1){
+                    hot_seq = hot_seq - 1;
+                    hotList(hot_seq);
+                    $('#hot_page').html(hot_seq+'/3');
+                }
+            })
+
+            $('#best_next').click(function(){
+                if(best_seq  < 3){
+                    best_seq = best_seq + 1;
+                    bestList(best_seq);
+                    $('#best_page').html(best_seq+'/3');
+                }
+            })
+
+            $('#best_prev').click(function(){
+                if(best_seq  > 1){
+                    best_seq = best_seq - 1;
+                    bestList(best_seq);
+                    $('#best_page').html(best_seq+'/3');
+                }
+            })
+
+            var owl = $("#owl-demo");
+ 
+            owl.owlCarousel({
+                autoPlay: 4000,
+                items : 4, //10 items above 1000px browser width
+                itemsDesktop : [1000,4], //5 items between 1000px and 901px
+                itemsDesktopSmall : [900,3], // betweem 900px and 601px
+                itemsTablet: [600,2], //2 items between 600 and 0
+                itemsMobile : false, // itemsMobile disabled - inherit from itemsTablet option
+                pagination : true
+            });
+        })
+
+        /*초기 베스트 인기글*/
+        function initList(){
+            hotList(1);
+            bestList(1);
+        }
+
+
+        function hotList(p_hot_seq){
+                var j_seq = {   k_hot_seq : p_hot_seq  }
+
+                var parma_obj = JSON.stringify(j_seq);
+                
+                $.ajax({
+                type:"post",
+                data : parma_obj,
+                url:"/idx_hot_list",
+                dataType : "json",
+                contentType: "application/json; charset=utf-8",
+                success : function(data) {
+                    var str = '';
+                    for(var i = 0 ; i < data.dailyhotList.length ; i ++){
+                        str +=    '<li style="text-overflow: ellipsis">'
+                        str +=        '<div class="div_dot-onejumin pointer-onejumin">'
+                        str +=          '<div class="div_idx_date text-right">'
+                        if(data.dailyhotList[i].comment_cnt != 0){
+                        str +=                '<span><span class="badge">'+data.dailyhotList[i].comment_cnt+'</span></span>'
+                        } 
+                        str +=                '<span class="text-muted" style="margin-left: 5px">'+data.dailyhotList[i].create_date+'</span>'
+                        str +=          '</div>'
+                        str +=                '<span class="span_index-onejumin">'+data.dailyhotList[i].sm_menu_abb+'</span><a href="/board/view?sm_menu_id='+data.dailyhotList[i].sm_menu_id+'&board_seq='+data.dailyhotList[i].board_seq+'" style="color:#000" class="alert-link">'
+                        if(data.dailyhotList[i].photo_yn == 'Y'){
+                        str +=                   '<img src="/images/photo_yn.png"> '
+                        }
+                        if(data.dailyhotList[i].video_yn == 'Y'){
+                        str +=                   '<img src="/images/video_yn.png"> '
+                        }
+                        str +=                   xxsBlock(data.dailyhotList[i].board_title)
+                        str +=                '</a>'
+                        str +=        '</div>'
+                        str +=    '</li>'
+                    
+                    }
+                    if(data.dailyhotList.length < 9) {
+                        for(var i = 0 ; i < 9-data.dailyhotList.length ; i ++){
+                            str +='<li>'
+                            str +=   '<div class="div_dot-onejumin">'
+                            str +=       '<span>&nbsp;</span>'
+                            str +=   '</div>'
+                            str += '</li>'      
+                        }
+                    }  
+                    $('#hot_list').html(str);
+                },
+                error : function(e) {
+                    alert('인기글 error')
+                }
+            });
+        }
+
+        function bestList(p_best_seq){
+                var j_seq = {   k_best_seq : p_best_seq  }
+
+                var parma_obj = JSON.stringify(j_seq);
+                
+                $.ajax({
+                type:"post",
+                data : parma_obj,
+                url:"/idx_best_list",
+                dataType : "json",
+                contentType: "application/json; charset=utf-8",
+                success : function(data) {
+                    var str = '';
+                    for(var i = 0 ; i < data.dailybestList.length ; i ++){
+                        str +=    '<li style="text-overflow: ellipsis">'
+                        str +=        '<div class="div_dot-onejumin pointer-onejumin">'
+                        str +=          '<div class="div_idx_date text-right">'
+                        if(data.dailybestList[i].comment_cnt != 0){
+                        str +=                '<span><span class="badge">'+data.dailybestList[i].comment_cnt+'</span></span>'
+                        } 
+                        str +=                '<span class="text-muted" style="margin-left: 5px">'+data.dailybestList[i].create_date+'</span>'
+                        str +=          '</div>'
+                        str +=                '<span class="span_index-onejumin">'+data.dailybestList[i].sm_menu_abb+'</span><a href="/board/view?sm_menu_id='+data.dailybestList[i].sm_menu_id+'&board_seq='+data.dailybestList[i].board_seq+'" style="color:#000" class="alert-link">'
+                        if(data.dailybestList[i].photo_yn == 'Y'){
+                        str +=                   '<img src="/images/photo_yn.png"> '
+                        }
+                        if(data.dailybestList[i].video_yn == 'Y'){
+                        str +=                   '<img src="/images/video_yn.png"> '
+                        }
+                        str +=                   xxsBlock(data.dailybestList[i].board_title)
+                        str +=                '</a>'
+                        str +=        '</div>'
+                        str +=    '</li>'
+                    }
+                    if(data.dailybestList.length < 9) {
+                        for(var j = 0 ; j < 9-data.dailybestList.length ; j ++){
+                            str +='<li>'
+                            str +=   '<div class="div_dot-onejumin">'
+                            str +=       '<span>&nbsp;</span>'
+                            str +=   '</div>'
+                            str += '</li>'      
+                        }
+                    }
+                    $('#best_list').html(str);
+                },
+                error : function(e) {
+                    alert('베스트글 error')
+                }
+            });
+        }
+    </script>
+  </head>
+  <body>
+    <% include ../parts/head %>
+    <% include ../parts/carousel %>
+    <div class="div_idx_body_width">
+        <div class="div_main_body-onejumin">
+            <div class="row div_no_margin">
+            <div class="col-md-9 idx_mobile div_left-onejumin"> <!-- 왼쪽영역 -->
+                <div class="row div_no_margin">
+                    <!-- <div class="div_preview-onejumin"> -->
+                    <div class="col-sm-6">
+                        <div class="div_index_table-onejumin">
+                            <h5><span class="div_underline-onejumin">전체 인기 게시글</span></h5>
+                            <div class="text-right div_index_tablecell-onejumin">
+                                <span id="hot_page">1/3</span>
+                                <a class="page-link"  ><span class='cursor-onejumin' style="font-size: 25px" id="hot_prev">&laquo;</span></a>
+                                <a class="page-link"  ><span class='cursor-onejumin' style="font-size: 25px" id="hot_next">&raquo;</span></a>
+                            </div>
+                        </div>
+                        <div class="page-header-onejumin">
+                            <ul class="ul_index-onejumin" id="hot_list">
+                                <!-- 인기글  -->
+                            </ul>
+                        </div>
+                    </div>
+                    <!-- <div class="div_preview-onejumin"> -->
+                    <div class="col-sm-6">
+                        <div class="div_index_table-onejumin">
+                            <h5><span class="div_underline-onejumin">전체 베스트 게시글</span></h5>
+                            <div class="text-right div_index_tablecell-onejumin">
+                                <span id="best_page">1/3</span>
+                                <a class="page-link"><span span class='cursor-onejumin' style="font-size: 25px" id="best_prev">&laquo;</span></a>
+                                <a class="page-link"><span span class='cursor-onejumin' style="font-size: 25px" id="best_next">&raquo;</span></a>
+                            </div>
+                        </div>
+                        <div class="page-header-onejumin">
+                            <ul class="ul_index-onejumin" id="best_list">
+                                <!-- 베스트글 -->
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+<% starlist.forEach(function(s1){ %>
+<% if(s1.rows.length > 0 ){%>
+    <div class="row div_no_margin">
+                <div class="col-sm-12">
+                    <div class="div_index_table-onejumin">
+                        <h5 style="display: inline-block"><span class="div_underline-onejumin"><%= s1.rows[0].sm_menu_name%> 베스트</span></h5>
+                        <div class="pull-right pointer-onejumin" style="margin:15px 0 5px 0;" onclick="location.href='/board/list?sm_menu_id=<%= s1.rows[0].sm_menu_id %>&sort=P'"><span class="label label-primary">더보기</span></div>
+                    </div>
+                    <div class="page-header-onejumin">
+                        <div id="owl-demo" class="owl-carousel owl-theme">
+                        <% s1.rows.forEach(function(e){%>
+                        <div class="item-list">
+                            <div style="position: relative; overflow: hidden">
+                                <div class="item">
+                                    <div class="item-list">
+                                        <div class="post-image">
+                                            <a href="/board/view?sm_menu_id=<%= e.sm_menu_id %>&board_seq=<%= e.board_seq %>&sort=P">
+                                                <div class="img-wrap">
+                                                    <div class="img-item">
+                                                        <img src="<%= e.img_path%>" alt="이미지 에러">
+                                                    </div>
+                                                </div>
+                                            </a>
+                                        </div>
+                                    </div>
+                                    <div class="caption" style="padding-top:5px;">
+                                        <div class="div_dot-onejumin">
+                                            <% if(e.comment_cnt != 0){%>
+                                                <span style="float: right"><span class="badge"><%=e.comment_cnt%></span></span>
+                                            <% } %>
+                                            <span><%=e.board_title%></span>
+                                            <div class="star_rating">
+                                                <% for(var i = 1 ; i <= 5 ; i ++ ){ %>
+                                                    <% if(i <= e.star ){ %>
+                                                    <a style="font-size: 14px" class="on">★</a>
+                                                    <% } else {%>
+                                                    <a style="font-size: 14px" >★</a>
+                                                    <% } %>
+                                                <% } %>
+                                            </div>
+                                            <div class="text-left"><span><%= e.nick_name %></span></div>
+                                            <div class="text-left"><span><%= e.create_date %></span>
+                                                <span>[ <%= e.good_point %> - <%= e.bad_point %> ]</span><div><span> 조회수</span><span> <%= e.board_hits %></span></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <% }) %>
+                        </div>
+                    </div>
+                </div>
+            </div>
+<% } %>
+<% }) %>
+            <% var r = 1 %>
+            <% normallist.forEach(function(e1,index){%>
+                <% if(r%2 == 1) { %>
+                <div class="row div_no_margin">
+                <% } %>    
+                <% if(e1.rows.length > 0 ){%>
+                        <% r++ %>
+                        <!-- <div class="div_preview-onejumin"> -->
+                        <div class="col-sm-6">
+                            <div class="div_index_table-onejumin">
+                                <h5 style="display: inline-block"><span class="div_underline-onejumin"><%= e1.rows[0].sm_menu_name%> 베스트</span></h5>
+                                <div class="pull-right pointer-onejumin" style="margin:15px 0 5px 0;" onclick="location.href='/board/list?sm_menu_id=<%= e1.rows[0].sm_menu_id %>&sort=P'"><span class="label label-primary">더보기</span></div>
+                            </div>
+                            <div class="page-header-onejumin">
+                                <ul class="ul_index-onejumin">
+                                <% e1.rows.forEach(function(e){%>
+                                    <li>
+                                        <div class="div_dot-onejumin">
+                                            <div class="div_idx_date text-right">
+                                                <% if(e.comment_cnt != 0){%>
+                                                    <span style="color: rgb(21, 81, 164)"><span class="badge"><%=e.comment_cnt%></span></span>
+                                                <% } %>
+                                                <span class="text-muted" style="margin-left: 5px"><%=e.create_date%></span>
+                                            </div>
+                                            <a href="/board/view?sm_menu_id=<%= e.sm_menu_id %>&board_seq=<%= e.board_seq %>&sort=P" style="color:#000;"  class="alert-link" >
+                                                <i>▷</i>
+                                                <% if(e.photo_yn == 'Y'){%>
+                                                    <img src="/images/photo_yn.png">
+                                                <% } %>
+                                                <% if(e.video_yn == 'Y'){%>
+                                                    <img src="/images/video_yn.png">
+                                                <% } %>
+                                                <span><%=e.board_title%></span> 
+                                            </a>
+                                        </div>
+                                    </li>
+                                <% }) %>
+                                <% 
+                                if(e1.rows.length < 5) {
+                                    for(var i = 0 ; i < 5-e1.rows.length ; i ++){
+                                %>
+                                    <li>
+                                        <div class="div_dot-onejumin">
+                                            <span>&nbsp;</span>
+                                        </div>
+                                    </li>        
+                                <% 
+                                    }
+                                } 
+                                %>
+                                </ul>
+                            </div>
+                        </div>
+                <% } %>
+                <% if(r%2 == 1) { %>
+                </div>
+                <% } %> 
+            <% }) %>
+
+                <!-- <div style="width: 100%; margin: 0 auto"> -->
+                <div class="row div_no_margin">
+                    <div class="col-sm-12">
+                    <ul class="nav nav-tabs">
+                        <% imglist.forEach(function(e1){%>
+                            <% if(e1.rows.length > 0 ){%>
+                            <li class="nav-item">
+                                <a class="nav-link photo_resize" data-toggle="tab" href="#<%= e1.rows[0].sm_menu_id %>"><%= e1.rows[0].sm_menu_name %></a>
+                            </li>
+                            <% } %>
+                        <% }) %>
+                    </ul>
+                    <div id="myTabContent" class="tab-content">
+                        <% imglist.forEach(function(e1){%>
+                            <% if(e1.rows.length > 0 ){%>
+                        <div class="tab-pane fade in" id="<%= e1.rows[0].sm_menu_id %>">
+                            <!-- 시작 -->
+                            <div class="row div_pc-onejumin" style="margin-top: 10px">
+                                <% e1.rows.forEach(function(e){ %>
+                                    <div class="col-sm-6 col-md-3">
+                                        <div class="thumbnail" style='cursor: pointer;' onclick="location.href='/p_board/view?sm_menu_id=<%= e.sm_menu_id %>&board_seq=<%= e.board_seq %>'">
+                                            <div style="width:100%; height:150px;">
+                                                <img src="<%= e.img_path%>" alt="이미지 에러" width="100%" height="100%">
+                                            </div>
+                                            <div class="caption">
+                                                    <div class="div_dot-onejumin">
+                                                    <% if(e.comment_cnt != 0){%>
+                                                        <span style="float: right"><span class="badge"><%=e.comment_cnt%></span></span>
+                                                    <% } %>
+                                                    <span><%=e.board_title%></span>
+                                                    <div class="text-left"><span><%= e.nick_name %></span></div>
+                                                    <div class="text-left"><span><%= e.create_date %></span>
+                                                        <span>[ <%= e.good_point %> - <%= e.bad_point %> ]</span><div><span> 조회수</span><span> <%= e.board_hits %></span></div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                <% })%>
+                            </div>
+                            
+                            <table class="table table-striped table-hover tb_mobile-onejumin" style="table-layout: fixed">
+                                <colgroup>
+                                    <col width='30%'>
+                                    <col width='70%'>
+                                </colgroup>
+                                <tbody>
+                                    <% e1.rows.forEach(function(e){ %>
+                                        <tr>
+                                            <td class='text-left' style='cursor: pointer;' onclick="location.href='/p_board/view?sm_menu_id=<%= e.sm_menu_id %>&board_seq=<%= e.board_seq %>'">
+                                                <img class="img-mb" src="<%= e.img_path%>" width="100%">
+                                            </td>
+                                            <td>
+                                                <div>
+                                                    <div class='div_dot-onejumin'>
+                                                        <% if(e.comment_cnt != 0){%>
+                                                            <span style="float: right"><span class="badge"><%=e.comment_cnt%></span></span>
+                                                        <% } %>
+                                                        <span><%=e.board_title%></span>
+                                                    </div>
+                                                    <div><span>[ <%= e.good_point %> - <%= e.bad_point %> ]</span><span> 조회수</span><span> <%= e.board_hits %></span></div>
+                                                    <div><span><%= e.create_date %></span> <span><%= e.nick_name %></span></div>  
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    <% }) %>
+                                </tbody>
+                            </table>
+                            <!-- 끝-->
+                        </div>
+                        <% } %>
+                        <% }) %>
+                    </div>
+                </div>
+                </div>
+            </div>
+            <% include ../parts/side %>
+        </div>
+        </div>
+    </div>
+    
+    <% include ../parts/footer %>
+  </body>
+</html>

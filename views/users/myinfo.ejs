@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>원주민공포만화</title>
+    <% include ../parts/option %>
+    <link href="http://netdna.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.css" rel="stylesheet"> 
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.js"></script> 
+    <script src="http://netdna.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.js"></script> 
+    <link href="/javascripts/dist/summernote.css" rel="stylesheet">
+    <script src="/javascripts/dist/summernote.min.js"></script>
+    <!-- include summernote-ko-KR -->
+    <script src="/javascripts/dist/lang/summernote-ko-KR.js"></script>
+    <script src="/javascripts/common.js"></script>
+    <script type="text/javascript">
+    var sb_action = '';
+    $(function(){
+        var rtn_flg = new Array();
+
+        $('#sb_join').click(function(){
+            
+            var password    = $('#password');
+            var rePassword  = $('#re_password');
+
+            rtn_flg[0] = isValidJoin(password,'3');
+            rtn_flg[1] = isValidJoin(rePassword,'4');
+
+            for(var i = 0 ; i < rtn_flg.length ; i ++ ){
+                if(!rtn_flg[i]){
+                    return false;
+                }
+            }
+
+            sb_action = '/users/upt_user';
+            $("#modal_modal").modal("show");
+        })
+
+        //변경하기버튼 누를 시
+        $("#btn_nick").click(function(){
+            var nickname = $('#nickname')
+            var jnickname = {
+                nickname       : nickname.val()
+            }
+
+            var parma_obj = JSON.stringify(jnickname);
+
+            if(rtn_flg[3]){
+                if(confirm('닉네임을 변경하시겠습니까?')){
+                    $.ajax({
+                        type:"post",
+                        data : parma_obj,
+                        url:'/users/upt_nick',
+                        dataType : "json",
+                        contentType: "application/json; charset=utf-8",
+                        async:false,
+                        success : function(data) {
+                            alert(data.msg);
+                            location.reload();
+                        },
+                        error : function(e) {
+                            alert('닉네임변경 error')
+                        }
+                    });
+                }
+            }
+        })
+
+        //닉네임 변경시 중복체크
+        $("#nickname").keyup(function(){
+            var nickname = $('#nickname');
+            rtn_flg[3] = isValidJoin(nickname,'5');
+        })
+
+        $("#sb_leave").click(function(){
+            //회원 탈퇴
+            sb_action = '/users/leave_user';
+            $("#modal_modal").modal("show");
+        })
+
+        //모달창 확인 클릭시
+        $("#r_leave_update").click(function(){
+           chkPassword();
+        })
+
+        //모달창 비밀번호에서 엔터 누를시
+        $("#old_password").keyup(function(e){
+            if(e.keyCode == '13'){
+                chkPassword();
+            }
+        })
+    })
+
+    //기존 비밀번호 체크
+    function chkPassword(){
+        var oldPassword = $('#old_password')
+        var jpassword = {
+                            k_password       : oldPassword.val()
+                        }
+
+        var parma_obj = JSON.stringify(jpassword);
+
+        if(oldPassword.val().length > 1){
+            $.ajax({
+                type:"post",
+                data : parma_obj,
+                url:'/users/cfm_password',
+                dataType : "json",
+                contentType: "application/json; charset=utf-8",
+                async:false,
+                success : function(data) {
+                    if(data.password_yn.cnt == 0){
+                       alert('비밀번호가 일치하지 않습니다.');
+                    }else{
+                        $("#f_upt").attr('action',sb_action)
+                        $("#f_upt").submit();
+                    }
+                },
+                error : function(e) {
+                    alert('비밀번호 확인 error')
+                }
+            });
+        }else{
+            isValid(oldPassword,'비밀번호');
+        }
+    }
+    </script>
+  </head>
+  <body>
+    <% include ../parts/head %>
+    <% include ../parts/carousel %>
+    <div class="div_body_width">
+        <div class="container">
+            <div class="form-group" style="padding :15px ; border: 1px solid #e6e6e6; background-color: #fafafa">
+                <form class="form-horizontal" id="f_upt"  action="/users/upt_user" method="post">
+                    <fieldset>
+                        <legend>내 정보</legend>
+                        <!-- <div class="form-group">
+                            <label for="nickname" class="col-lg-2 control-label">등급</label>
+                            <div class="col-lg-8">
+                                <input type="text" class="form-control" value='<%=info.user_grade%>' readonly="readonly">
+                            </div>
+                        </div> -->
+
+                        <!-- <div class="form-group">
+                            <label for="nickname" class="col-lg-2 control-label">닉네임</label>
+                            <div class="col-lg-8">
+                                <input type="text" class="form-control" id="nickname" name="nickname" placeholder="닉네임(2~6자리)" value='<%=info.nick_name%>' readonly="readonly">
+                                <span class="text-danger"></span>
+                            </div>
+                        </div> -->
+
+                        <div class="form-group">
+                            <label for="nickname" class="col-lg-2 control-label">닉네임</label>
+                            <div class="col-lg-8">
+                                <div class="input-group">
+                                    <input type="text" class="form-control" id="nickname" name="nickname" placeholder="닉네임(2~6자리)" value='<%=info.nick_name%>'>
+                                    <span class="input-group-btn">
+                                        <button class="btn btn-default" type="button" id="btn_nick">변경하기</button>
+                                    </span>
+                                </div>
+                                <span class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        
+                        <div class="form-group">
+                            <label for="inputPassword" class="col-lg-2 control-label">신규 비밀번호</label>
+                            <div class="col-lg-8">
+                                <input type="password" class="form-control" id="password" name='password' placeholder="비밀번호(8~12자리)">
+                                <span class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="inputPassword" class="col-lg-2 control-label">재확인</label>
+                            <div class="col-lg-8">
+                                <input type="password" class="form-control" id="re_password" name='re_password' placeholder="비밀번호확인">
+                                <span class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <div class="col-lg-8 col-lg-offset-2 text-right">
+                                <a id="sb_leave" class="btn btn-danger">회원탈퇴</a>
+                                <a href='javascript:history.back()' type="reset" class="btn btn-default">취소</a>
+                                <a id='sb_join' type="submit" class="btn btn-primary">확인</a>
+                            </div>
+                        </div>
+                    </fieldset>
+                    <div class="modal" id="modal_modal">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                            <div class="modal-header">
+                                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                                <h4 class="modal-title">기존비밀번호</h4>
+                            </div>
+                            <div class="modal-body">
+                                <div class="form-group">
+                                    <div class="col-lg-10">
+                                        <input type="password" class="form-control" id="old_password" name='old_password' value=''>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-default" data-dismiss="modal">취소</button>
+                                <button type="button" id="r_leave_update" class="btn btn btn-danger" data-dismiss="modal">확인</button>
+                            </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <% include ../parts/footer %>
+  </body>
+</html>

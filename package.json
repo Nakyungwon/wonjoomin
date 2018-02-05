@@ -1,0 +1,37 @@
+{
+  "name": "onejumin",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "start": "node ./bin/www"
+  },
+  "dependencies": {
+    "async": "^2.5.0",
+    "body-parser": "^1.18.2",
+    "connect-flash": "^0.1.1",
+    "cookie-parser": "^1.4.3",
+    "debug": "^2.6.9",
+    "device": "^0.3.9",
+    "ejs": "^2.5.7",
+    "email-verification": "^0.4.6",
+    "express": "^4.15.5",
+    "express-session": "^1.15.6",
+    "express-useragent": "^1.0.8",
+    "fs": "0.0.1-security",
+    "ipaddr.js": "^1.5.4",
+    "jsonwebtoken": "^8.1.0",
+    "moment": "^2.19.1",
+    "morgan": "^1.9.0",
+    "multer": "^1.3.0",
+    "nodemailer": "^4.3.1",
+    "passport": "^0.4.0",
+    "passport-local": "^1.0.0",
+    "pg": "^7.3.0",
+    "platform": "^1.3.4",
+    "replaceall": "^0.1.6",
+    "robots.txt": "^1.1.0",
+    "serve-favicon": "^2.4.5",
+    "summernote-nodejs": "^1.0.4",
+    "web-midi-api": "^1.4.4"
+  }
+}

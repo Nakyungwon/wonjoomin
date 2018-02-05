@@ -1,0 +1,69 @@
+<div class="col-md-3 idx_mobile div_right-onejumin"><!-- 오른쪽영역 -->
+    <div class="row div_no_margin">
+        <div class="col-md-12 col-sm-6">
+                <div class="div_index_table-onejumin">
+                    <h5 style="display: inline-block"><span class="div_underline-onejumin">최근올라온글</span></h5>
+                </div>
+                <div class="page-header-onejumin">
+                    <ul class="ul_index-onejumin">
+                        <% recentList.forEach(function(e){%>
+                            <li>
+                                <div class="div_dot-onejumin">
+                                    <div class="div_idx_date text-right">
+                                        <% if(e.comment_cnt != 0){%>
+                                            <span style="color: rgb(21, 81, 164)"><span class="badge"><%=e.comment_cnt%></span></span>
+                                        <% } %>
+                                        <span class="text-muted" style="margin-left: 5px"><%=e.create_date%></span>
+                                    </div>
+                                    <a href="/board/view?sm_menu_id=<%= e.sm_menu_id %>&board_seq=<%= e.board_seq %>" style="color:#000;"  class="alert-link" >
+                                        <span class="span_index-onejumin"><%= e.sm_menu_abb %></span>
+                                        <% if(e.photo_yn == 'Y'){%>
+                                            <img src="/images/photo_yn.png">
+                                        <% } %>
+                                        <% if(e.video_yn == 'Y'){%>
+                                            <img src="/images/video_yn.png">
+                                        <% } %>
+                                        <span><%=e.board_title%></span> 
+                                    </a>
+                                </div>
+                            </li>
+                        <% }) %>
+                    </ul>
+                </div>
+        </div>
+    </div>
+
+    <div class="row div_no_margin">
+            <div class="col-md-12 col-sm-6">
+                    <div class="div_index_table-onejumin">
+                        <h5 style="display: inline-block"><span class="div_underline-onejumin">공지사항</span></h5>
+                    </div>
+                    <div class="page-header-onejumin">
+                        <ul class="ul_index-onejumin">
+                            <% mainNoticeList.forEach(function(e){%>
+                                <li>
+                                    <div class="div_dot-onejumin">
+                                        <div class="div_idx_date text-right">
+                                            <% if(e.comment_cnt != 0){%>
+                                                <span style="color: rgb(21, 81, 164)"><span class="badge"><%=e.comment_cnt%></span></span>
+                                            <% } %>
+                                            <span class="text-muted" style="margin-left: 5px"><%=e.create_date%></span>
+                                        </div>
+                                        <a href="/board/view?sm_menu_id=<%= e.sm_menu_id %>&board_seq=<%= e.board_seq %>" style="color:#000;"  class="alert-link" >
+                                            <i>▷</i>
+                                            <% if(e.photo_yn == 'Y'){%>
+                                                <img src="/images/photo_yn.png">
+                                            <% } %>
+                                            <% if(e.video_yn == 'Y'){%>
+                                                <img src="/images/video_yn.png">
+                                            <% } %>
+                                            <span><%=e.board_title%></span> 
+                                        </a>
+                                    </div>
+                                </li>
+                            <% }) %>
+                        </ul>
+                    </div>
+            </div>
+        </div>
+</div>
