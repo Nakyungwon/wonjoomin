@@ -134,7 +134,6 @@
             <div class="container">
                 <input type="hidden" name='sm_menu_id' value='<%=boardOne[0].sm_menu_id %>'>
                 <input type="hidden" name='board_seq' value='<%=boardOne[0].board_seq %>'>
-<% if(user_info && user_info.user_grade =='BRAHMAN'){%>
                 <div class="row">
                     <div class="col-lg-9 col-lg-offset-1">
                         <div class="form-group">
@@ -142,14 +141,14 @@
                             <div class="col-lg-10">
                                 <select class="form-control" id="board_category_code" name='board_category_code' >
                                     <option value='' >선택</option>   
-                                    <option value='G' <%=boardOne[0].board_category_code=="G"?"selected":"" %>>게시판공지</option>
-                                    <option value='N' <%=boardOne[0].board_category_code=="N"?"selected":"" %>>일반</option>
+                                    <% categoryList.forEach(function(e){ %>
+                                        <option value='<%= e.board_category_code %>' <%=boardOne[0].board_category_code==e.board_category_code?"selected":"" %>><%= e.board_category_name %></option>
+                                    <% }) %>
                                 </select>
                             </div>
                         </div>
                     </div>
                 </div>
-<% } %>
                 <div class="row">
                     <div class="col-lg-9 col-lg-offset-1">
                         <div class="form-group">

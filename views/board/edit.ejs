@@ -24,7 +24,7 @@
             $('#board_content').summernote({
                 height: 300,                 
                 minHeight: 300,             
-                maxHeight: 300,
+                maxHeight: 1000,
                 lang:'ko-KR',
                 toolbar: [
                             // [groupName, [list of button]]
@@ -57,11 +57,9 @@
                 var boardContent                    = $('#board_content');
                 var logInfo                         = '<%= user_info %>'
                 var userGrade                       = '<%= user_info !=null ? user_info.user_grade : null%>'
-               
-                if(userGrade == 'BRAHMAN'){
-                    if(!isValid(boardCategoryCode,'카테고리')){
-                        return false;
-                    }
+            
+                if(!isValid(boardCategoryCode,'카테고리')){
+                    return false;
                 }
                 if(!logInfo){
                     if(!isValid(nickName,'닉네임')){
@@ -142,22 +140,25 @@
         <form class="form-horizontal" id='f_edit' action="/board/edit" method="post">
             <input type="hidden" name='sm_menu_id' value='<%= sm_menu_id %>' > 
             <div class="container">
-<% if(user_info && user_info.user_grade =='BRAHMAN'){%>
                 <div class="row">
                     <div class="col-lg-9 col-lg-offset-1">
                         <div class="form-group">
                             <label for="select" class="col-lg-2 control-label">카테고리</label>
                             <div class="col-lg-10">
                                 <select class="form-control" id="board_category_code" name='board_category_code'>
-                                <option value=''>선택</option>   
-                                <option value='G'>게시판공지</option>
-                                <option value='N'>일반</option>
+                                <option value=''>선택</option>
+                                <% categoryList.forEach(function(e){ %>
+                                    <% if(categoryList.length == 1){%>
+                                    <option value='<%= e.board_category_code %>' selected='selected'><%= e.board_category_name %></option>
+                                    <% } else {%>
+                                    <option value='<%= e.board_category_code %>'><%= e.board_category_name %></option>
+                                    <% } %>
+                                <% }) %>
                                 </select>
                             </div>
                         </div>
                     </div>
                 </div>
-<% } %>
 <% if(!user_info){%>
                 <div class="row">
                     <div class="col-lg-9 col-lg-offset-1">
@@ -191,7 +192,6 @@
                         </div>
                     </div>
                 </div>
-
 <% if(star_yn == 'Y'){%>
                 <div class="row">
                     <div class="col-lg-9 col-lg-offset-1">
@@ -211,7 +211,6 @@
                     </div>
                 </div>
 <% } %>
-
                 <div class="row" style="margin-top:20px;">
                     <div class="col-lg-9 col-lg-offset-1">
                         <div class="form-group">

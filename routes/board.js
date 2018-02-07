@@ -478,6 +478,8 @@ const boardList = async function(req, res, next){
             ,A.BOARD_HITS             AS BOARD_HITS
             ,COALESCE(B.GOOD_GBN,0)   AS GOOD_GBN
             ,COALESCE(B.BAD_GBN,0)    AS BAD_GBN
+            ,A.BOARD_CATEGORY_NAME    AS BOARD_CATEGORY_NAME
+            ,A.BOARD_CATEGORY_CODE    AS BOARD_CATEGORY_CODE
             ,(
             SELECT COUNT(*)
               FROM BOARD_COMMENT B
@@ -509,7 +511,13 @@ const boardList = async function(req, res, next){
                 FROM ONEJUMIN_USER C
                WHERE C.USER_ID = A.USER_ID 
             ) AS USER_IMG
-       FROM BOARD A LEFT OUTER JOIN
+       FROM 
+            (SELECT A.*
+                   ,B.BOARD_CATEGORY_NAME
+               FROM BOARD A
+                    ,CODE_MASTER B
+              WHERE A.BOARD_CATEGORY_CODE = B.BOARD_CATEGORY_CODE
+            ) A LEFT OUTER JOIN
             (
               SELECT B.SM_MENU_ID
                       ,B.BOARD_SEQ
@@ -682,6 +690,7 @@ router.all('/edit', function(req,res,next){
  * 게시판 글 생성 페이지 이동
  */
 router.get('/edit', async function(req, res, next) {
+  
   const ynlist = await db.query(
     `
       SELECT COALESCE(WRITE_YN,'Y') as WRITE_YN
@@ -691,13 +700,38 @@ router.get('/edit', async function(req, res, next) {
     `
   ,[req.param('sm_menu_id')]
   )
+
   if(ynlist.rows[0].write_yn == 'N' && !req.user){
     res.render('main/error',{user_info   : req.user})
   }
   if(ynlist.rows[0].write_yn == 'N' && (req.user.user_grade != 'BRAHMAN') ){
     res.render('main/error',{user_info   : req.user})
   }
-  res.render('./board/edit', {sm_menu_id:req.param('sm_menu_id'),star_yn:ynlist.rows[0].star_yn,user_info : req.user});
+
+  const categoryList = await db.query(
+    `
+      SELECT BOARD_CATEGORY_CODE AS BOARD_CATEGORY_CODE
+            ,BOARD_CATEGORY_NAME AS BOARD_CATEGORY_NAME
+        FROM CODE_MAPPING
+       WHERE SM_MENU_ID = $1
+         AND (
+              USER_GRADE = 'ALL'
+              OR USER_GRADE = $2
+       )
+    `
+  ,[
+     req.param('sm_menu_id')
+    ,req.user==null?'':req.user.user_grade
+   ]
+  )
+
+  res.render('./board/edit', {
+                               sm_menu_id:req.param('sm_menu_id')
+                              ,star_yn:ynlist.rows[0].star_yn
+                              ,user_info : req.user
+                              ,categoryList:categoryList.rows
+                             }
+            );
 });
 
 /**
@@ -969,6 +1003,7 @@ router.get('/view', async function(req, res, next) {
                                 ,pg             : rtnList.pg
                                 ,search         : rtnList.field
                                 ,start          : rtnList.start
+                                ,write_yn       : rtnList.write_yn
                                 ,end            : rtnList.end
                                 ,sort           : rtnList.sort
                                 ,boardOne       : boardOne.rows
@@ -1003,6 +1038,23 @@ router.post('/modify', async function(req, res, next) {
     res.render('main/error',{user_info   : req.user})
   }
 
+    const categoryList = await db.query(
+      `
+        SELECT BOARD_CATEGORY_CODE AS BOARD_CATEGORY_CODE
+              ,BOARD_CATEGORY_NAME AS BOARD_CATEGORY_NAME
+          FROM CODE_MAPPING
+        WHERE SM_MENU_ID = $1
+          AND (
+                USER_GRADE = 'ALL'
+                OR USER_GRADE = $2
+        )
+      `
+    ,[
+      req.param('sm_menu_id')
+      ,req.user==null?'':req.user.user_grade
+    ]
+    )
+
    const boardOne = await db.query(
     `
       SELECT SM_MENU_ID               AS SM_MENU_ID
@@ -1019,7 +1071,13 @@ router.post('/modify', async function(req, res, next) {
     [req.param('sm_menu_id'),req.param('board_seq')]
   )
 
-  res.render('./board/modify', { boardOne: boardOne.rows,star_yn: ynlist.rows[0].star_yn, user_info:req.user,sm_menu_id:req.param('sm_menu_id') });
+  res.render('./board/modify', { boardOne     : boardOne.rows
+                                ,star_yn      : ynlist.rows[0].star_yn
+                                ,user_info    : req.user
+                                ,sm_menu_id   : req.param('sm_menu_id')
+                                ,categoryList : categoryList.rows
+                              }
+                            );
 });
 
 /**

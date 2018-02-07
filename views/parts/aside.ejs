@@ -55,7 +55,15 @@
           </a>
           <h3><%= user_info.nick_name %></h3>
           <div class="font-12 text-muted" style="letter-spacing:-1px;">
-            회원
+            <% if (user_info.user_grade == 'BRAHMAN') { %>
+              관리자
+            <% }else if (user_info.user_grade == 'KSHATRIYA'){%>
+              슈퍼네임드
+            <% }else if (user_info.user_grade == 'VAISHYA'){%>
+              네임드
+            <% }else {%>
+              회원
+            <% } %>
           </div>
           <div class="h30"></div>
           <div class="btn-group btn-group-justified">

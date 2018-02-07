@@ -653,7 +653,6 @@ router.post('/sm_menu_list', async function(req, res, next) {
     if(!req.user || req.user.user_grade !='BRAHMAN'){
         res.render('main/error',{user_info   : req.user})
     }else{
-        console.log(req.body)
         const{menu_id}  = req.body
         const smMenuList = await db.query(
             `
@@ -987,6 +986,274 @@ router.post('/board_modify', function(req, res, next) {
     }
 });
 
+/**
+ * 코드마스터 
+ */
+router.get('/code_master', async function(req, res, next) {
+    if(!req.user || req.user.user_grade !='BRAHMAN'){
+        res.render('main/error',{user_info   : req.user})
+    }else{
+        const codeList = await db.query(
+            `
+                SELECT BOARD_CATEGORY_CODE    AS BOARD_CATEGORY_CODE
+                     ,BOARD_CATEGORY_NAME     AS BOARD_CATEGORY_NAME
+                     ,USE_YN        AS USE_YN
+                  FROM CODE_MASTER
+                  ORDER BY CREATE_DATE DESC
+            `
+        ) 
 
+        const smMenuList = await db.query(
+            `
+                SELECT SM_MENU_ID
+                      ,SM_MENU_NAME 
+                  FROM SM_MENU
+            `
+        )
+        var codeStr=''
+        codeStr += '['
+        for(var i = 0 ; i < codeList.rows.length; i++){
+            codeStr += '{ "board_category_code" : "'+ codeList.rows[i].board_category_code
+                     +'", "board_category_name" : "'+ codeList.rows[i].board_category_name
+                     +'", "use_yn" : "'+codeList.rows[i].use_yn
+                     +'"}'
+            if( i != codeList.rows.length - 1){
+                codeStr += ',';
+            }
+        }
+        codeStr += ']'
+
+        res.render('admin/code_master',{user_info   : req.user , codeStr : codeStr , smMenuList: smMenuList.rows});
+    }
+});
+
+/**
+ * 코드 마스터 생성
+ */
+router.post('/code_master_insert', async function(req, res, next) {
+    if(!req.user || req.user.user_grade !='BRAHMAN'){
+        res.render('main/error',{user_info   : req.user})
+    }else{
+      var ip = ipaddr.process(req.header('x-forwarded-for')||req.connection.remoteAddress).toString();
+      const{ board_category_code,board_category_name,use_yn } = req.body
+      await db.query(
+        `
+            INSERT INTO CODE_MASTER(
+                BOARD_CATEGORY_CODE
+                ,BOARD_CATEGORY_NAME
+                ,USE_YN           
+                ,CREATE_ID        
+                ,CREATE_DATE      
+                ,CREATE_IP       
+                ,UPDATE_ID        
+                ,UPDATE_DATE     
+                ,UPDATE_IP        
+            )VALUES(
+                $1
+                ,$2
+                ,$3
+                ,$4
+                ,timezone('KST'::text, now())
+                ,$5
+                ,$4
+                ,timezone('KST'::text, now())
+                ,$5
+            )
+        `
+        ,[
+            board_category_code,
+            board_category_name,
+            use_yn,
+            req.user.user_id,
+            ip,
+        ]
+      )
+      res.send({msg:'저장 되었습니다.'})
+    }
+});
+
+/**
+ * 코드 마스터 수정
+ */
+router.post('/code_master_modify', function(req, res, next) {
+    if(!req.user || req.user.user_grade !='BRAHMAN'){
+        res.render('main/error',{user_info   : req.user})
+    }else{
+        var ip =  ipaddr.process(req.header('x-forwarded-for')||req.connection.remoteAddress).toString();
+        const{board_category_code,board_category_name,use_yn} = req.body
+        db.query(
+            `
+                UPDATE CODE_MASTER         SET
+                    BOARD_CATEGORY_NAME  = $2
+                    ,USE_YN              = $3
+                    ,UPDATE_IP           = $4 
+                    ,UPDATE_ID           = $5
+                    ,UPDATE_DATE         = timezone('KST'::text, now())
+                WHERE BOARD_CATEGORY_CODE  = $1
+            `
+            ,[
+                board_category_code
+                ,board_category_name
+                ,use_yn
+                ,ip
+                ,req.user.user_id
+            ]
+        )
+        res.send({rtnFlag:true})
+    }
+});
+
+
+/**
+ * 각 소메뉴 매핑 정보 가져오기
+ */
+router.post('/code_mapping', async function(req, res, next) {
+    if(!req.user || req.user.user_grade !='BRAHMAN'){
+        res.render('main/error',{user_info   : req.user})
+    }else{
+        var ip =  ipaddr.process(req.header('x-forwarded-for')||req.connection.remoteAddress).toString();
+        const{smMenuId} = req.body
+        const codeList = await db.query(
+            `
+                SELECT SM_MENU_ID
+                      ,BOARD_CATEGORY_CODE
+                      ,BOARD_CATEGORY_NAME
+                      ,USER_GRADE
+                      ,USE_YN
+                  FROM CODE_MAPPING
+                WHERE  SM_MENU_ID = $1
+            `
+            ,[
+                smMenuId
+            ]
+        )
+
+        var codeStr=''
+        codeStr += '['
+        for(var i = 0 ; i < codeList.rows.length; i++){
+            codeStr += '{ "sm_menu_id" : "'         + codeList.rows[i].sm_menu_id
+                     +'", "board_category_code" : "'+ codeList.rows[i].board_category_code
+                     +'", "board_category_name" : "'+ codeList.rows[i].board_category_name
+                     +'", "user_grade" : "'         + codeList.rows[i].user_grade
+                     +'", "use_yn" : "'             +codeList.rows[i].use_yn
+                     +'"}'
+            if( i != codeList.rows.length - 1){
+                codeStr += ',';
+            }
+        }
+        codeStr += ']'
+        res.send({codeStr:codeStr})
+    }
+});
+
+/**
+ * 코드 매핑 생성
+ */
+router.post('/code_mapping_insert', async function(req, res, next) {
+    if(!req.user || req.user.user_grade !='BRAHMAN'){
+        res.render('main/error',{user_info   : req.user})
+    }else{
+      var ip = ipaddr.process(req.header('x-forwarded-for')||req.connection.remoteAddress).toString();
+      const{ sm_menu_id,user_grade,board_category_code,board_category_name,use_yn } = req.body
+      await db.query(
+        `
+            INSERT INTO CODE_MAPPING(
+                 SM_MENU_ID
+                ,BOARD_CATEGORY_CODE
+                ,BOARD_CATEGORY_NAME
+                ,USER_GRADE
+                ,USE_YN           
+                ,CREATE_ID        
+                ,CREATE_DATE      
+                ,CREATE_IP       
+                ,UPDATE_ID        
+                ,UPDATE_DATE     
+                ,UPDATE_IP        
+            )VALUES(
+                $1
+                ,$2
+                ,$3
+                ,$4
+                ,$5
+                ,$6
+                ,timezone('KST'::text, now())
+                ,$7
+                ,$6
+                ,timezone('KST'::text, now())
+                ,$7
+            )
+        `
+        ,[
+            sm_menu_id,
+            board_category_code,
+            board_category_name,
+            user_grade,
+            use_yn,
+            req.user.user_id,
+            ip,
+        ]
+      )
+      res.send({msg:'저장 되었습니다.'})
+    }
+});
+
+/**
+ * 코드 매핑 수정
+ */
+router.post('/code_mapping_modify', function(req, res, next) {
+    if(!req.user || req.user.user_grade !='BRAHMAN'){
+        res.render('main/error',{user_info   : req.user})
+    }else{
+        var ip =  ipaddr.process(req.header('x-forwarded-for')||req.connection.remoteAddress).toString();
+        const{ sm_menu_id,user_grade,board_category_code,board_category_name,use_yn } = req.body
+        db.query(
+            `
+                UPDATE CODE_MAPPING         SET
+                    BOARD_CATEGORY_NAME = $3
+                    ,USER_GRADE          = $4
+                    ,USE_YN              = $5
+                    ,UPDATE_IP           = $6 
+                    ,UPDATE_ID           = $7
+                    ,UPDATE_DATE         = timezone('KST'::text, now())
+                WHERE SM_MENU_ID  = $1
+                  AND BOARD_CATEGORY_CODE = $2
+            `
+            ,[
+                sm_menu_id
+                ,board_category_code
+                ,board_category_name
+                ,user_grade
+                ,use_yn
+                ,ip
+                ,req.user.user_id
+            ]
+        )
+        res.send({rtnFlag:true})
+    }
+});
+
+/**
+ * 코드 매핑 수정
+ */
+router.post('/code_mapping_delete', function(req, res, next) {
+    if(!req.user || req.user.user_grade !='BRAHMAN'){
+        res.render('main/error',{user_info   : req.user})
+    }else{
+        var ip =  ipaddr.process(req.header('x-forwarded-for')||req.connection.remoteAddress).toString();
+        const{ sm_menu_id,user_grade,board_category_code,board_category_name,use_yn } = req.body
+        db.query(
+            `
+                DELETE FROM CODE_MAPPING 
+                WHERE SM_MENU_ID  = $1
+                  AND BOARD_CATEGORY_CODE = $2
+            `
+            ,[
+                sm_menu_id
+                ,board_category_code
+            ]
+        )
+        res.send({rtnFlag:true})
+    }
+});
 
 module.exports = router;
