@@ -665,7 +665,7 @@ router.get('/list', async function(req, res, next) {
           ,sm_menu_id     : req.param('sm_menu_id')
           ,cnt            : rtnList.cnt
           ,pg             : rtnList.pg
-          ,search         : rtnList.field
+          ,search         : rtnList.search
           ,start          : rtnList.start
           ,end            : rtnList.end
           ,sort           : rtnList.sort
@@ -1001,7 +1001,7 @@ router.get('/view', async function(req, res, next) {
                                 ,sm_menu_id     : req.param('sm_menu_id')
                                 ,cnt            : rtnList.cnt
                                 ,pg             : rtnList.pg
-                                ,search         : rtnList.field
+                                ,search         : rtnList.search
                                 ,start          : rtnList.start
                                 ,write_yn       : rtnList.write_yn
                                 ,end            : rtnList.end

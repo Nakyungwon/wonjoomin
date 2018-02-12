@@ -34,7 +34,7 @@ module.exports = {
                 FROM BOARD A
                     ,SM_MENU D
               WHERE A.SM_MENU_ID          = D.SM_MENU_ID
-              AND A.BOARD_CATEGORY_CODE = 'N'
+              AND A.BOARD_CATEGORY_CODE != 'G'
               AND A.USE_YN              = 'Y'
               AND D.INDEX_YN            = 'Y'
               ORDER BY A.CREATE_DATE DESC
@@ -68,7 +68,7 @@ module.exports = {
                          AND B.SM_MENU_ID = A.SM_MENU_ID
                          AND B.USE_YN     != 'N'
                     ) AS COMMENT_CNT
-                    ,CASE WHEN A.BOARD_CONTENT LIKE '%<img src%' THEN
+                    ,CASE WHEN A.BOARD_CONTENT LIKE '%<img%' THEN
                       'Y'
                     ELSE
                       'N'
@@ -80,8 +80,7 @@ module.exports = {
                     END AS VIDEO_YN
                 FROM BOARD A
                     ,SM_MENU D
-              WHERE A.SM_MENU_ID          = D.SM_MENU_ID
-              AND A.BOARD_CATEGORY_CODE = 'N'
+              WHERE A.SM_MENU_ID        = D.SM_MENU_ID
               AND A.USE_YN              = 'Y'
               AND A.SM_MENU_ID          = 'M0103'
               ORDER BY A.CREATE_DATE DESC

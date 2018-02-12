@@ -84,7 +84,7 @@ router.get('/', async function(req, res, next) {
                          AND B.SM_MENU_ID = A.SM_MENU_ID
                          AND B.USE_YN     != 'N'
                     ) AS COMMENT_CNT
-                    ,CASE WHEN A.BOARD_CONTENT LIKE '%<img src%' THEN
+                    ,CASE WHEN A.BOARD_CONTENT LIKE '%<img%' THEN
                       'Y'
                     ELSE
                       'N'
@@ -120,7 +120,7 @@ router.get('/', async function(req, res, next) {
               AND A.SM_MENU_ID          = B.SM_MENU_ID
               AND A.BOARD_SEQ           = B.BOARD_SEQ
               AND A.SM_MENU_ID          = D.SM_MENU_ID
-              AND A.BOARD_CATEGORY_CODE = 'N'
+              AND A.BOARD_CATEGORY_CODE != 'G'
               AND A.USE_YN              = 'Y'
               AND D.INDEX_YN            = 'Y'
               AND D.STAR_YN             = 'N'
@@ -210,7 +210,7 @@ router.get('/', async function(req, res, next) {
             AND A.SM_MENU_ID          = B.SM_MENU_ID
             AND A.BOARD_SEQ           = B.BOARD_SEQ
             AND A.SM_MENU_ID          = D.SM_MENU_ID
-            AND A.BOARD_CATEGORY_CODE = 'N'
+            AND A.BOARD_CATEGORY_CODE != 'G'
             AND A.USE_YN              = 'Y'
             AND D.INDEX_YN            = 'Y'
             AND D.STAR_YN             = 'Y'
@@ -295,7 +295,7 @@ router.get('/', async function(req, res, next) {
             WHERE A.SM_MENU_ID        = $1
             AND A.SM_MENU_ID          = B.SM_MENU_ID
             AND A.BOARD_SEQ           = B.BOARD_SEQ
-            AND A.BOARD_CATEGORY_CODE = 'N'
+            AND A.BOARD_CATEGORY_CODE != 'G'
             AND A.USE_YN              = 'Y'
             ORDER BY TO_CHAR(A.CREATE_DATE,'YYYYMMDD') DESC,(B.GOOD_POINT-B.BAD_POINT) DESC,A.BOARD_HITS DESC
             LIMIT 4 OFFSET 0
@@ -342,7 +342,7 @@ router.post('/idx_hot_list', async function(req, res, next) {
             WHERE B.BOARD_SEQ  = A.BOARD_SEQ
               AND B.SM_MENU_ID = A.SM_MENU_ID
           ) AS COMMENT_CNT
-          ,CASE WHEN A.BOARD_CONTENT LIKE '%<img src%' THEN
+          ,CASE WHEN A.BOARD_CONTENT LIKE '%<img%' THEN
             'Y'
           ELSE
             'N'
@@ -359,7 +359,7 @@ router.post('/idx_hot_list', async function(req, res, next) {
       AND B.MENU_GBN          = 'N'
       AND B.INDEX_YN          = 'Y'
       AND A.USE_YN            = 'Y'
-      AND BOARD_CATEGORY_CODE = 'N'
+      AND BOARD_CATEGORY_CODE != 'G'
       AND B.STAR_YN           = 'N'
       AND A.BOARD_HITS > 10
       ORDER BY TO_CHAR(A.CREATE_DATE,'YYYYMMDD') DESC, A.BOARD_HITS DESC
@@ -404,7 +404,7 @@ router.post('/idx_best_list', async function(req, res, next) {
             WHERE B.BOARD_SEQ  = A.BOARD_SEQ
               AND B.SM_MENU_ID = A.SM_MENU_ID
           ) AS COMMENT_CNT
-          ,CASE WHEN A.BOARD_CONTENT LIKE '%<img src%' THEN
+          ,CASE WHEN A.BOARD_CONTENT LIKE '%<img%' THEN
             'Y'
           ELSE
             'N'
@@ -443,7 +443,7 @@ router.post('/idx_best_list', async function(req, res, next) {
       AND C.INDEX_YN          = 'Y'
       AND A.USE_YN            = 'Y'
       AND C.STAR_YN           = 'N'
-      AND BOARD_CATEGORY_CODE = 'N'
+      AND BOARD_CATEGORY_CODE != 'G'
       AND (B.GOOD_POINT*2-B.BAD_POINT) > 3
       ORDER BY TO_CHAR(A.CREATE_DATE,'YYYYMMDD') DESC,(B.GOOD_POINT*2-B.BAD_POINT) DESC,A.BOARD_HITS DESC
       LIMIT 9 OFFSET $1

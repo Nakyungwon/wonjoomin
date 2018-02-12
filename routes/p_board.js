@@ -901,7 +901,7 @@ router.get('/view', async function(req, res, next) {
                                 ,wardYn      : wardYn.rows[0].ward_yn
                                 ,cnt         : rtnList.cnt
                                 ,pg          : rtnList.pg
-                                ,search      : rtnList.field
+                                ,search      : rtnList.search
                                 ,start       : rtnList.start
                                 ,end         : rtnList.end
                                 ,sort        : rtnList.sort
