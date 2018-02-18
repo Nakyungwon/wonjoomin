@@ -6,8 +6,22 @@ var crypto     = require('crypto'); //암호화
 var moment     = require('moment'); //시간 
 var passport   = require('./passport');
 var autoLogin  = require('./autoLogin');
+var fs         = require('fs');
+var multer     = require('multer');
+var path       = require('path');
 var ipaddr     = require('ipaddr.js');
-
+var upload     = multer({ 
+                    limits : { fileSize: 10 * 1024 * 1024},
+                    storage: multer.diskStorage({
+                      destination: function (req, file, cb) {
+                        cb(null, 'public/user_photo/');
+                      },
+                      filename: function (req, file, cb) {
+                        cb(null, new Date().valueOf() + path.extname(file.originalname));
+                      },
+                    }),
+                }).single('user_photo');
+moment.locale('ko');
 var router = express.Router();
 
 /**
@@ -697,6 +711,72 @@ router.post('/upt_nick',  function(req, res, next) {
       }
     )
   }
+});
+
+/**
+ * 회원사진 업로드 팝업창
+ */
+router.get('/user_photo', function(req, res, next) {
+  res.render("users/user_photo",{user_info:req.user});
+});
+
+/**
+ * 회원사진 업로드 (등록,수정,삭제)
+ */
+router.post('/user_photo', function(req, res, next) {
+  upload(req, res, function (err) {
+    const{del_photo} = req.body
+    //들어오면 일단 삭제
+    fs.exists('public'+req.user.user_photo, function (exists) { 
+        if(exists){
+          fs.unlink('public'+req.user.user_photo, function (err) { 
+          });
+        }
+    });
+    // 이미지 삭제 chkeck박스 클릭시
+    if(del_photo){
+      db.query(
+        `
+          UPDATE ONEJUMIN_USER SET
+          USER_PHOTO = NULL
+          WHERE USER_ID = $1
+        `
+        ,[
+          req.user.user_id
+        ]
+      ).then(
+        function(){
+          req.user.user_photo = null;
+          res.render("users/user_photo",{user_info:req.user})
+        }
+      )
+    //이미지 변경및 추가시
+    }else{
+      if(err){
+        res.render("users/user_photo",{msg:'이미지변경 실패',user_info:req.user});
+      }else{
+          let imgPath      = '\\'+req.file.path.split('\\')[1]+'\\'+req.file.path.split('\\')[2];
+          //let imgPath      = '/'+req.file.path.split('/')[1]+'/'+req.file.path.split('/')[2];
+          var ip           =  ipaddr.process(req.header('x-forwarded-for')||req.connection.remoteAddress).toString();
+          db.query(
+            `
+              UPDATE ONEJUMIN_USER SET
+              USER_PHOTO = $1
+              WHERE USER_ID = $2
+            `
+            ,[
+              imgPath
+              ,req.user.user_id
+            ]
+          ).then(
+            function(){
+              req.user.user_photo = imgPath;
+              res.render("users/user_photo",{user_info:req.user})
+            }
+          )
+      }
+    }
+  })
 });
 
 module.exports = router;

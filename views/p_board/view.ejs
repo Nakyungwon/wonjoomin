@@ -603,22 +603,33 @@
             commentStr += '<tr class="active">'
             commentStr += '<td class="text-left" >'
             if(data.commentBestList[i].p_level == 1){
-                commentStr += '<div style="padding-left: 10px;">'
+                commentStr += '<div class="media">'
+                // 사진영역 left
+                if(data.commentBestList[i].user_photo == null){
+                commentStr += '<div class="photo pull-left"><div class="media-object"><i class="fa fa-user"></i></div></div>'
+                }else{
+                commentStr += '<div class="photo pull-left"><img src="'+data.commentBestList[i].user_photo+'" alt=""></div>'    
+                }
+                commentStr += '<div class="media-body">'
                 commentStr += '       <div><span><strong class="user_area" data-seq='+data.commentBestList[i].comment_seq+' data-userYn='+data.commentBestList[i].user_yn+'>'+xxsBlock(data.commentBestList[i].nick_name)
                 if(data.commentBestList[i].user_img != null){
                     commentStr += ' <img src="/images/rank/'+data.commentBestList[i].user_img+'" alt=""/>';
                 }
                 commentStr += ' </strong></span>';
                 commentStr += '       <span style="color: #aaa !important"><span class="glyphicon glyphicon-time" style="font-size: 12px"></span>'+data.commentBestList[i].create_date + ' | ' + data.commentBestList[i].create_ip +'</span>'
+                
+                commentStr += ' <div class="pull-right">'
+                if(data.commentBestList[i].user_yn == 'N' || log_userId == data.commentBestList[i].user_id || log_userGrade == 'BRAHMAN'){
+                    commentStr += '             <span class="btn-link pointer-onejumin comment-del text-mute" data-seq='+data.commentBestList[i].comment_seq+' data-user='+data.commentBestList[i].user_id+'>삭제</span>'
+                }
+                commentStr += ' </div>'
+                
                 commentStr += '</div>'
                 commentStr += '       <div><span class="label label-danger">BEST</span> '+ xxsBlock(data.commentBestList[i].comment_content)+'</div>'
                 commentStr += '       <div>'
                 commentStr += '             <span class="btn-link pointer-onejumin up_comment-onejumin"   data-seq='+data.commentBestList[i].comment_seq+'>[추천<img src="/images/up.png">'+data.commentBestList[i].good_gbn+']</span>'
                 commentStr += '             <span class="btn-link pointer-onejumin down_comment-onejumin" data-seq='+data.commentBestList[i].comment_seq+'>[반대<img src="/images/down.png">'+data.commentBestList[i].bad_gbn +' ]</span>'
                 commentStr += '             <span class="btn-link pointer-onejumin report_comment-onejumin" data-seq='+data.commentBestList[i].comment_seq+'>[신고]</span>'
-                if(data.commentBestList[i].user_yn == 'N' || log_userId == data.commentBestList[i].user_id || log_userGrade == 'BRAHMAN'){
-                    commentStr += '             <span class="btn-link pointer-onejumin comment-del" data-seq='+data.commentBestList[i].comment_seq+' data-user='+data.commentBestList[i].user_id+'>[삭제]</span>'
-                }
                 if(log_userGrade == 'BRAHMAN'){
                     commentStr += '             <span class="btn-link pointer-onejumin comment-admin-del" data-seq='+data.commentBestList[i].comment_seq+' data-user='+data.commentBestList[i].user_id+' >[관리자 삭제]</span>'
                 }
@@ -655,45 +666,67 @@
             commentStr += '<tr>'
             commentStr += '<td class="text-left" >'
             if(data.commentList[i].p_level == 1){
-                commentStr += '<div style="padding-left: 10px;">'
+                commentStr += '<div class="media" >'
+                    // 사진영역 left
+                if(data.commentList[i].user_photo == null){
+                commentStr += '<div class="photo pull-left"><div class="media-object"><i class="fa fa-user"></i></div></div>'
+                }else{
+                commentStr += '<div class="photo pull-left"><img src="'+data.commentList[i].user_photo+'" alt=""></div>'    
+                }
+                commentStr += '<div class="media-body">'
                 commentStr += '       <div><span><strong class="user_area" data-seq='+data.commentList[i].comment_seq+' data-userYn='+data.commentList[i].user_yn+'>'+xxsBlock(data.commentList[i].nick_name)
                 if(data.commentList[i].user_img != null){
                     commentStr += ' <img src="/images/rank/'+data.commentList[i].user_img+'" alt=""/>';
                 }
                 commentStr += ' </strong></span>';
                 commentStr += '       <span style="color: #aaa !important"><span class="glyphicon glyphicon-time" style="font-size: 12px"></span>'+data.commentList[i].create_date + ' | ' + data.commentList[i].create_ip +'</span>'
+                
+                commentStr += ' <div class="pull-right">'
+                commentStr += '             <span class="btn-link pointer-onejumin re_comment text-muted" data-parent='+data.commentList[i].comment_seq+'>답글</span>'
+                if(data.commentList[i].user_yn == 'N' || log_userId == data.commentList[i].user_id || log_userGrade == 'BRAHMAN'){
+                    commentStr += '             <span class="btn-link pointer-onejumin comment-del text-muted" data-seq='+data.commentList[i].comment_seq+' data-user='+data.commentList[i].user_id+'>삭제</span>'
+                }
+                commentStr += ' </div>'
+                
                 commentStr += '</div>'
                 commentStr += '       <div>'+ xxsBlock(data.commentList[i].comment_content)+'</div>'
                 commentStr += '       <div>'
                 commentStr += '             <span class="btn-link pointer-onejumin up_comment-onejumin"   data-seq='+data.commentList[i].comment_seq+'>[추천<img src="/images/up.png">'+data.commentList[i].good_gbn+']</span>'
                 commentStr += '             <span class="btn-link pointer-onejumin down_comment-onejumin" data-seq='+data.commentList[i].comment_seq+'>[반대<img src="/images/down.png">'+data.commentList[i].bad_gbn +' ]</span>'
                 commentStr += '             <span class="btn-link pointer-onejumin report_comment-onejumin" data-seq='+data.commentList[i].comment_seq+'>[신고]</span>'
-                commentStr += '             <span class="btn-link pointer-onejumin re_comment" data-parent='+data.commentList[i].comment_seq+'>[답글]</span>'
-                if(data.commentList[i].user_yn == 'N' || log_userId == data.commentList[i].user_id || log_userGrade == 'BRAHMAN'){
-                    commentStr += '             <span class="btn-link pointer-onejumin comment-del" data-seq='+data.commentList[i].comment_seq+' data-user='+data.commentList[i].user_id+'>[삭제]</span>'
-                }
                 if(log_userGrade == 'BRAHMAN'){
                     commentStr += '             <span class="btn-link pointer-onejumin comment-admin-del" data-seq='+data.commentList[i].comment_seq+' data-user='+data.commentList[i].user_id+' >[관리자 삭제]</span>'
                 }
                 commentStr += '       </div>'
                 commentStr += ' </div>'
             }else{
-                commentStr += '   <div style="padding-left: 30px;">'
-                commentStr += '       <div> <img src="/images/recomment.png"><span><strong class="user_area" data-seq='+data.commentList[i].comment_seq+' data-userYn='+data.commentList[i].user_yn+'>'+xxsBlock(data.commentList[i].nick_name)
+                commentStr += '   <div class="media" style="padding-left: 30px;">'
+                // 사진영역 left
+                if(data.commentList[i].user_photo == null){
+                commentStr += '<div class="photo pull-left"><div class="media-object"><i class="fa fa-user"></i></div></div>'
+                }else{
+                commentStr += '<div class="photo pull-left"><img src="'+data.commentList[i].user_photo+'" alt=""></div>'    
+                }
+                commentStr += '<div class="media-body">'
+                commentStr += '       <div><span><strong class="user_area" data-seq='+data.commentList[i].comment_seq+' data-userYn='+data.commentList[i].user_yn+'>'+xxsBlock(data.commentList[i].nick_name)
                 if(data.commentList[i].user_img != null){
                     commentStr += ' <img src="/images/rank/'+data.commentList[i].user_img+'" alt=""/>';
                 }
                 commentStr += ' </strong></span>';
                 commentStr += '    <span style="color: #aaa !important"><span class="glyphicon glyphicon-time" style="font-size: 12px"></span>'+data.commentList[i].create_date + ' | ' + data.commentList[i].create_ip +'</span>'
+                
+                commentStr += ' <div class="pull-right">'
+                if(data.commentList[i].user_yn == 'N' || log_userId == data.commentList[i].user_id || log_userGrade == 'BRAHMAN'){
+                    commentStr += '             <span class="btn-link pointer-onejumin comment-del text-mute" data-seq='+data.commentList[i].comment_seq+' data-user='+data.commentList[i].user_id+' >삭제</span>'
+                }
+                commentStr += ' </div>'
+                
                 commentStr += '   </div>'
-                commentStr += '       <div class="div_next-onejumin" style="padding-left: 15px;">'+ xxsBlock(data.commentList[i].comment_content)+'</div>'
-                commentStr += '       <div style="padding-left: 15px;">'
+                commentStr += '       <div class="div_next-onejumin">'+ xxsBlock(data.commentList[i].comment_content)+'</div>'
+                commentStr += '       <div>'
                 commentStr += '             <span class="btn-link pointer-onejumin up_comment-onejumin"   data-seq='+data.commentList[i].comment_seq+'>[추천<img src="/images/up.png">'+data.commentList[i].good_gbn+']</span>'
                 commentStr += '             <span class="btn-link pointer-onejumin down_comment-onejumin" data-seq='+data.commentList[i].comment_seq+'>[반대<img src="/images/down.png">'+data.commentList[i].bad_gbn +' ]</span>'
                 commentStr += '             <span class="btn-link pointer-onejumin report_comment-onejumin" data-seq='+data.commentList[i].comment_seq+'>[신고]</span>'
-                if(data.commentList[i].user_yn == 'N' || log_userId == data.commentList[i].user_id || log_userGrade == 'BRAHMAN'){
-                    commentStr += '             <span class="btn-link pointer-onejumin comment-del" data-seq='+data.commentList[i].comment_seq+' data-user='+data.commentList[i].user_id+' >[삭제]</span>'
-                }
                 if(log_userGrade == 'BRAHMAN'){
                     commentStr += '             <span class="btn-link pointer-onejumin comment-admin-del" data-seq='+data.commentList[i].comment_seq+' data-user='+data.commentList[i].user_id+' >[관리자 삭제]</span>'
                 }
@@ -795,7 +828,14 @@
             <input type="hidden" name="sm_menu_id" value="<%= boardOne[0].sm_menu_id%>">
             <input type="hidden" name="board_seq"  value="<%= boardOne[0].board_seq %>">
             <div class="container-onejumin">
-                <div class="div_view-onejumin" style="font-size: 17px; font-weight: bold; padding-left:5px;"><%= boardOne[0].board_title %></div>
+                <div class="div_view-onejumin" style="font-size: 17px; font-weight: bold; padding-left:5px;">
+                <% if (boardOne[0].user_photo != null){ %>
+                <div class="talker-photo">
+                    <img src="<%= boardOne[0].user_photo %>" alt="">
+                </div>
+                <% } %>
+                <%= boardOne[0].board_title %>
+                </div>
                 <div class="well bs-component" style="border-top: 1px solid rgba(54, 47, 33, 0.226); padding: 10px 0 0 5px;">
                         <div class="form-group" style="margin-left:0; margin-right:0">
                             <div class="col-lg-9">

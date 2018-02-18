@@ -35,6 +35,7 @@ const crypto            = require('crypto');
         SELECT A.USER_ID
               ,A.NICK_NAME
               ,A.USER_GRADE
+              ,A.USER_PHOTO
               ,(
                  SELECT COUNT(*)
                    FROM USER_IP_BAN B
@@ -88,6 +89,7 @@ const crypto            = require('crypto');
                     SELECT A.USER_ID
                           ,A.NICK_NAME
                           ,A.USER_GRADE
+                          ,A.USER_PHOTO
                           ,(
                             SELECT COUNT(*)
                               FROM USER_IP_BAN B

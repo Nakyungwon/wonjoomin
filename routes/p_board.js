@@ -114,6 +114,7 @@ const commentList = async function(req, res, next){
               FROM ONEJUMIN_USER C
              WHERE C.USER_ID = A.USER_ID 
           ) AS USER_IMG
+          ,B.USER_PHOTO
       FROM ( 
              SELECT A.*
                   ,B.GOOD_GBN
@@ -240,6 +241,7 @@ const commentList = async function(req, res, next){
               FROM ONEJUMIN_USER C
              WHERE C.USER_ID = A.USER_ID 
           ) AS USER_IMG
+          ,B.USER_PHOTO
       FROM ( 
              SELECT A.*
                   ,B.GOOD_GBN
@@ -873,7 +875,8 @@ router.get('/view', async function(req, res, next) {
                   THEN 'named.png'
                   WHEN B.USER_GRADE = 'SHUDRA'
                   THEN 'user.png'
-             END AS USER_IMG 
+             END AS USER_IMG
+             ,B.USER_PHOTO          AS USER_PHOTO
         FROM  BOARD A LEFT OUTER JOIN
               ONEJUMIN_USER B
               ON A.USER_ID = B.USER_ID
