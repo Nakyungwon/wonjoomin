@@ -33,7 +33,11 @@
     <% include ../parts/carousel %>
     <div class="div_body_width">
         <% include ../parts/menu %>
-        <% include common_list %>
+        <% if(menu_gbn == 'N'){%>
+            <% include common_list %>
+        <% }else{%>
+            <% include photo_list %>
+        <% }%>
     </div>
     <% include ../parts/footer %>
   </body>

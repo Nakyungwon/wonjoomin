@@ -46,6 +46,11 @@
             }
         })
         
+        var originalData = "<%= boardOne[0].origin %>";
+        var expUrl =  /(((http(s)?:\/\/)\S+(\.[^(\n|\t|\s,)]+)+)|((http(s)?:\/\/)?(([a-zA-z\-_]+[0-9]*)|([0-9]*[a-zA-z\-_]+)){2,}(\.[^(\n|\t|\s,)]+)+))+/gi;
+        var changedData = originalData.replace(expUrl, '<a href="$&" target="_blank">$&</a>');
+        $("#view_origin").html(changedData)
+
         $("#f_admin_del").click(function(){
             var user_grade      = '<%= user_info==null?null:user_info.user_grade %>'
             del_upt_flg = 'D'
@@ -927,13 +932,17 @@
                     <% } %>
                         <div id="board_content" style="word-break:break-all;">
                         <%- boardOne[0].board_content%>
+                        <br>
+                        <% if(boardOne[0].dig_code == 'D'){%>
+                        해당 게시물의 출처는 <span id="view_origin"><%= boardOne[0].origin %></span> 입니다.
+                        <% } %>
                         </div>
                     </div>
                 </div>
 
                 <div class="row">
                     <div class="container text-center" style="border-top : 1px solid rgb(238, 238, 238); padding: 3% 0 0 3%; ">
-                        추천수가 많으면 베스트글로 등록됩니다.
+                        추천수가 많으면 베스트글로 등록됩니다.(로그인 없이 추천가능)
                         <br>
                         <br>
                         <div style="display:table; margin: 0 auto;">
@@ -996,7 +1005,12 @@
                         <a id='sb_comment_reg' class="btn btn-default">등록</a>
                     </div>
                 </div>
-                <% include common_list %>
+
+                <% if(menu_gbn == 'N'){%>
+                    <% include common_list %>
+                <% }else{%>
+                    <% include photo_list %>
+                <% }%>
         </div>
         <div class="modal" id="modal_modal">
                 <div class="modal-dialog">

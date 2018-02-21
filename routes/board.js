@@ -456,7 +456,7 @@ const boardList = async function(req, res, next){
                 FROM ONEJUMIN_USER C
                WHERE C.USER_ID = A.USER_ID 
             ) AS USER_IMG
-        FROM BOARD A
+        FROM BOARD A 
         WHERE SM_MENU_ID = $1
         AND USE_YN != 'N'
         AND BOARD_CATEGORY_CODE = 'G'
@@ -513,6 +513,19 @@ const boardList = async function(req, res, next){
                 FROM ONEJUMIN_USER C
                WHERE C.USER_ID = A.USER_ID 
             ) AS USER_IMG
+            ,CASE WHEN  A.USE_YN != 'R' THEN
+            COALESCE(
+                ( 
+                  SELECT B.IMG_PATH
+                    FROM BOARD_IMG B 
+                  WHERE A.BOARD_SEQ = B.BOARD_SEQ
+                  AND A.SM_MENU_ID = B.SM_MENU_ID
+                  AND 1 = B.IMG_SEQ
+                )
+            ,'/images/no_img.png') 
+            ELSE 
+              '/images/report_img.png'
+            END   AS IMG_PATH
        FROM 
             (SELECT A.*
                    ,B.BOARD_CATEGORY_NAME
@@ -602,7 +615,8 @@ const boardList = async function(req, res, next){
 
   const write_yn = await db.query(
     `
-      SELECT COALESCE(WRITE_YN,'Y') as WRITE_YN
+      SELECT COALESCE(WRITE_YN,'Y') AS WRITE_YN
+             ,COALESCE(MENU_GBN,'N') AS MENU_GBN
         FROM SM_MENU
        WHERE SM_MENU_ID = $1
     `
@@ -642,6 +656,7 @@ const boardList = async function(req, res, next){
                   ,end            : end
                   ,sort           : sort
                   ,write_yn       : write_yn.rows[0].write_yn
+                  ,menu_gbn       : write_yn.rows[0].menu_gbn
               }
 
   return rtnJson;
@@ -673,6 +688,7 @@ router.get('/list', async function(req, res, next) {
           ,sort           : rtnList.sort
           ,errMsg         : req.flash('errMsg')
           ,write_yn       : rtnList.write_yn
+          ,menu_gbn       : rtnList.menu_gbn
           ,user_info      : req.user
           ,recentList     : recentList.rows
           ,mainNoticeList : mainNoticeList.rows
@@ -741,7 +757,7 @@ router.get('/edit', async function(req, res, next) {
  */
 router.post('/edit', function(req, res, next) {
   var ip =  ipaddr.process(req.header('x-forwarded-for')||req.connection.remoteAddress).toString();
-  const{sm_menu_id,board_category_code,board_title,board_content,nick_name,board_password,star} = req.body
+  const{sm_menu_id,board_category_code,board_title,board_content,nick_name,board_password,star,dig_code,origin} = req.body
   db.query(
     `
     SELECT 
@@ -807,7 +823,9 @@ router.post('/edit', function(req, res, next) {
               ,UPDATE_DATE        
               ,UPDATE_IP          
               ,BOARD_HITS
-              ,STAR         
+              ,STAR
+              ,DIG_CODE
+              ,ORIGIN        
             ) VALUES(
               $12
               ,$1
@@ -828,6 +846,8 @@ router.post('/edit', function(req, res, next) {
               ,$11
               ,0
               ,$13
+              ,$14
+              ,$15
             )
             `
             ,[
@@ -844,6 +864,8 @@ router.post('/edit', function(req, res, next) {
               ,ip
               ,boardSeq
               ,star
+              ,dig_code
+              ,dig_code=='C'?null:origin
             ]
           ).then(function(err){
             db.query(
@@ -974,6 +996,8 @@ router.get('/view', async function(req, res, next) {
                   THEN 'user.png'
              END AS USER_IMG
              ,B.USER_PHOTO          AS USER_PHOTO
+             ,A.DIG_CODE            AS DIG_CODE
+             ,A.ORIGIN              AS ORIGIN
         FROM BOARD A LEFT OUTER JOIN
              ONEJUMIN_USER B
              ON A.USER_ID = B.USER_ID
@@ -1007,6 +1031,7 @@ router.get('/view', async function(req, res, next) {
                                 ,search         : rtnList.search
                                 ,start          : rtnList.start
                                 ,write_yn       : rtnList.write_yn
+                                ,menu_gbn       : rtnList.menu_gbn
                                 ,end            : rtnList.end
                                 ,sort           : rtnList.sort
                                 ,boardOne       : boardOne.rows
@@ -1066,6 +1091,8 @@ router.post('/modify', async function(req, res, next) {
              ,BOARD_TITLE             AS BOARD_TITLE
              ,BOARD_CONTENT           AS BOARD_CONTENT 
              ,STAR                    AS STAR 
+             ,DIG_CODE                AS DIG_CODE
+             ,ORIGIN                  AS ORIGIN
         FROM BOARD
        WHERE SM_MENU_ID = $1 
          AND BOARD_SEQ  = $2 
@@ -1116,7 +1143,7 @@ router.post('/upt', function(req, res, next) {
  */
 router.post('/mod', function(req, res, next) {
   var ip = ipaddr.process(req.header('x-forwarded-for')||req.connection.remoteAddress).toString();
-  const{board_title,board_content,board_category_code,sm_menu_id,board_seq,star} = req.body
+  const{board_title,board_content,board_category_code,sm_menu_id,board_seq,star,dig_code,origin} = req.body
   db.query(
    `
     UPDATE BOARD SET
@@ -1127,6 +1154,8 @@ router.post('/mod', function(req, res, next) {
     ,UPDATE_DATE          = timezone('KST'::text, now())
     ,UPDATE_IP            = $5
     ,STAR                 = $8
+    ,DIG_CODE             = $9
+    ,ORIGIN               = $10
     WHERE SM_MENU_ID      = $6
       AND BOARD_SEQ       = $7 
    `
@@ -1139,6 +1168,8 @@ router.post('/mod', function(req, res, next) {
     ,sm_menu_id
     ,board_seq
     ,star
+    ,dig_code
+    ,dig_code=='C'?null:origin
    ]
  ).then(function(err){
   db.query(

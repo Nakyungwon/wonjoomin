@@ -370,7 +370,7 @@
                             <div class="row div_pc-onejumin" style="margin-top: 10px">
                                 <% e1.rows.forEach(function(e){ %>
                                     <div class="col-sm-6 col-md-3">
-                                        <div class="thumbnail" style='cursor: pointer;' onclick="location.href='/p_board/view?sm_menu_id=<%= e.sm_menu_id %>&board_seq=<%= e.board_seq %>'">
+                                        <div class="thumbnail" style='cursor: pointer;' onclick="location.href='/board/view?sm_menu_id=<%= e.sm_menu_id %>&board_seq=<%= e.board_seq %>'">
                                             <div style="width:100%; height:150px;">
                                                 <img src="<%= e.img_path%>" alt="이미지 에러" width="100%" height="100%">
                                             </div>
@@ -399,7 +399,7 @@
                                 <tbody>
                                     <% e1.rows.forEach(function(e){ %>
                                         <tr>
-                                            <td class='text-left' style='cursor: pointer;' onclick="location.href='/p_board/view?sm_menu_id=<%= e.sm_menu_id %>&board_seq=<%= e.board_seq %>'">
+                                            <td class='text-left' style='cursor: pointer;' onclick="location.href='/board/view?sm_menu_id=<%= e.sm_menu_id %>&board_seq=<%= e.board_seq %>'">
                                                 <img class="img-mb" src="<%= e.img_path%>" width="100%">
                                             </td>
                                             <td>

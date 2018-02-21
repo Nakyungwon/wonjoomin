@@ -49,6 +49,14 @@
                 }
             });
 
+            $('input:radio[name="dig_code"]').change(function(){
+                if($(this).val() == 'D'){
+                    $("#div_origin").show();
+                }else{
+                    $("#div_origin").hide();
+                }
+            })
+
             $('#sb_mod').click(function(){
                 var boardCategoryCode   = $('#board_category_code');
                 var boardTitle          = $('#board_title');
@@ -149,6 +157,38 @@
                         </div>
                     </div>
                 </div>
+
+                <div class="row">
+                    <div class="col-lg-9 col-lg-offset-1">
+                        <div class="form-group">
+                            <label class="col-lg-2 control-label">펌여부</label>
+                            <div class="col-lg-10">
+                                <div class="radio">
+                                    <label>
+                                    <input type="radio" name="dig_code" value="C" <%= boardOne[0].dig_code=="C"?"checked":"" %>>
+                                    창작글
+                                    </label>
+                                    &nbsp;&nbsp;
+                                    <label>
+                                    <input type="radio" name="dig_code" value="D" <%= boardOne[0].dig_code=="D"?"checked":"" %>>
+                                    펌글
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                  </div>
+                <div class="row" id="div_origin" style="display:<%= boardOne[0].dig_code=='C'?'none':'' %>">
+                    <div class="col-lg-9 col-lg-offset-1">
+                        <div class="form-group">
+                            <label class="col-lg-2 control-label">출처</label>
+                            <div class="col-lg-10">
+                                <input type="text" class="form-control" id="origin" name='origin' maxlength="150" value="<%= boardOne[0].origin %>">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="row">
                     <div class="col-lg-9 col-lg-offset-1">
                         <div class="form-group">

@@ -66,11 +66,7 @@
                 <% boardList.forEach(function(e){ %>
                     <tr>
                         <td class='text-center'><%= e.sm_menu_abb %></td>
-                        <% if(e.menu_gbn == 'N') {%>
                         <td class='text-left' style='cursor: pointer' onclick="location.href='/board/view?sm_menu_id=<%= e.sm_menu_id %>&board_seq=<%= e.board_seq %>'"><a><%= e.board_title %></a></td>
-                        <% }else{%>
-                        <td class='text-left' style='cursor: pointer' onclick="location.href='/p_board/view?sm_menu_id=<%= e.sm_menu_id %>&board_seq=<%= e.board_seq %>'"><a><%= e.board_title %></a></td>
-                        <%}%>
                         <td class='text-center'><%= e.nick_name %></td>
                         <td class='text-center'><%= e.create_date %></td>
                         <td class='text-center'><%= e.good_gbn %> - <%= e.bad_gbn %></td>
@@ -89,15 +85,9 @@
             <tbody>
                 <% boardList.forEach(function(e){ %>
                     <tr>
-                        <% if(e.menu_gbn == 'N') {%>
                         <td class='text-left' style='cursor: pointer' onclick="location.href='/board/view?sm_menu_id=<%= e.sm_menu_id %>&board_seq=<%= e.board_seq %>'"><span><%= e.sm_menu_abb %> </span><a><%= e.board_title %></a>
                             <div style="font-size:11px; margin-top: -5px" ><%= e.nick_name %> | <%= e.create_date %> [ <%= e.board_hits %> / <%= e.good_gbn %> - <%= e.bad_gbn %> ] </div>
                         </td>
-                        <% }else{%>
-                        <td class='text-left' style='cursor: pointer' onclick="location.href='/p_board/view?sm_menu_id=<%= e.sm_menu_id %>&board_seq=<%= e.board_seq %>'"><span><%= e.sm_menu_abb %> </span><a><%= e.board_title %></a>
-                            <div style="font-size:11px; margin-top: -5px" ><%= e.nick_name %> | <%= e.create_date %> [ <%= e.board_hits %> / <%= e.good_gbn %> - <%= e.bad_gbn %> ] </div>
-                        </td>
-                        <% } %>
                     </tr>
                 <% }) %>
                 <% if(boardList.length == 0){ %>

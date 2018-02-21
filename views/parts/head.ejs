@@ -178,11 +178,11 @@
             $(obj).siblings().remove();
             var smMenuStr = '<ul class="dropdown-menu" role="menu">';
             for(var i = 0 ; i < data.smMenuList.length ; i ++){
-                if(data.smMenuList[i].menu_gbn == 'N'){
+                // if(data.smMenuList[i].menu_gbn == 'N'){
                   smMenuStr += '<li><a href="/board/list?sm_menu_id='+data.smMenuList[i].sm_menu_id+'">'+data.smMenuList[i].sm_menu_name+'</a></li>';
-                }else if(data.smMenuList[i].menu_gbn == 'P'){
-                  smMenuStr += '<li><a href="/p_board/list?sm_menu_id='+data.smMenuList[i].sm_menu_id+'">'+data.smMenuList[i].sm_menu_name+'</a></li>';
-                }
+                // }else if(data.smMenuList[i].menu_gbn == 'P'){
+                //   smMenuStr += '<li><a href="/p_board/list?sm_menu_id='+data.smMenuList[i].sm_menu_id+'">'+data.smMenuList[i].sm_menu_name+'</a></li>';
+                // }
               }
             smMenuStr += '</ul>';
 
