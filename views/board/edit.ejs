@@ -43,19 +43,24 @@
                             ['color', ['color']],
                             ['imagesize', ['imageSize100', 'imageSize50', 'imageSize25']],
                             ['para', ['ul', 'paragraph']],
+                            ['height', ['height']],
                             ['table', ['table']],
                             ['insert', ['link', 'picture','video']],
-                            ['remove', ['removeMedia']]
+                            ['remove', ['removeMedia']],
                         ],
                 callbacks: {
                     onImageUpload: function(files) {
+                        if( $('.note-editor').find("img").length > 20){
+                            alert('이미지는 최대 20장까지 업로드 가능합니다.');
+                            return false;
+                        }
                         sendFile(files[0]);
                     },
                     onMediaDelete : function($target, editor, $editable) {
                         deleteFile($target[0].src);
-                    }
+                    },
+                   
                 }
-                
             });
 
             $('#sb_reg').click(function(){
@@ -194,7 +199,7 @@
                         <div class="form-group">
                             <label class="col-lg-2 control-label">출처</label>
                             <div class="col-lg-10">
-                                <input type="text" class="form-control" id="origin" name='origin' maxlength="150">
+                                <input type="text" class="form-control" id="origin" name='origin' maxlength="300">
                             </div>
                         </div>
                     </div>

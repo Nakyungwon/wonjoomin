@@ -398,8 +398,12 @@
                 }
                 if(each_userYn == 'N'){
                     $('#message_edit').hide();
+                    $('#user_board_list').hide();
+                    $('#user_except').hide();
                 }else{
                     $('#message_edit').show();
+                    $('#user_board_list').show();
+                    $('#user_except').show();
                 }
             }
         })
@@ -933,16 +937,22 @@
                         <div id="board_content" style="word-break:break-all;">
                         <%- boardOne[0].board_content%>
                         <br>
-                        <% if(boardOne[0].dig_code == 'D'){%>
-                        해당 게시물의 출처는 <span id="view_origin"><%= boardOne[0].origin %></span> 입니다.
-                        <% } %>
+                        <span style="font-size: 11px;color: gray">
+<% if(boardOne[0].dig_code == 'D'){%>
+    <% if(boardOne[0].origin.trim().length != 0){%>
+                            해당 게시물의 출처는 <span id="view_origin"><%= boardOne[0].origin %></span> 입니다.
+    <% }else {%>
+                            게시자가 해당 게시물의 출처를 작성하지 않았습니다.
+    <% }%>
+<% } %>
+                        </span>
                         </div>
                     </div>
                 </div>
 
                 <div class="row">
                     <div class="container text-center" style="border-top : 1px solid rgb(238, 238, 238); padding: 3% 0 0 3%; ">
-                        추천수가 많으면 베스트글로 등록됩니다.(로그인 없이 추천가능)
+                        추천수가 많으면 베스트글로 등록됩니다.<br>(로그인 없이 추천가능)
                         <br>
                         <br>
                         <div style="display:table; margin: 0 auto;">
@@ -973,7 +983,7 @@
                     <a id='f_del' class="btn btn btn-danger">삭제</a>
                     <a id='f_upt' class="btn btn-primary">수정</a>
                     <% } %>
-                    <a type="button" class="btn btn-secondary" href="javascript:history.back()">취소</a>
+                    <a type="button" class="btn btn-secondary" href="javascript:history.back()">목록</a>
                 </div>
 
            
@@ -1008,6 +1018,10 @@
 
                 <% if(menu_gbn == 'N'){%>
                     <% include common_list %>
+                <% }else if(menu_gbn == 'S'){%>
+                    <% include star_img_list %>
+                <% }else if(menu_gbn == 'H'){%>
+                    <% include head_img_list %>
                 <% }else{%>
                     <% include photo_list %>
                 <% }%>
@@ -1045,6 +1059,12 @@
                 <ul class="list-group" style="margin:0">
                     <li class="list-group-item" style="padding:2px 2px 2px 2px" id="message_edit">
                     <span class="tag tag-default tag-pill float-xs-right" >쪽지보내기</span>
+                    </li>
+                    <li class="list-group-item" style="padding:2px 2px 2px 2px" id="user_board_list">
+                    <span class="tag tag-default tag-pill float-xs-right" >작성자글보기</span>
+                    </li>
+                    <li class="list-group-item" style="padding:2px 2px 2px 2px" id="user_except">
+                    <span class="tag tag-default tag-pill float-xs-right" >작성자차단하기</span>
                     </li>
                     <li class="list-group-item" style="padding:2px 2px 2px 2px" id="block_user">
                     <span class="tag tag-default tag-pill float-xs-right" >차단하기</span>

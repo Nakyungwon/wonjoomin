@@ -20,6 +20,8 @@
                 $("#star").val(Number(stars));
                 return false;
             });
+
+            initOrigin("<%= boardOne[0].dig_code%>");
             
             $('#board_content').summernote({
                 height: 300,                 
@@ -34,13 +36,17 @@
                             ['color', ['color']],
                             ['imagesize', ['imageSize100', 'imageSize50', 'imageSize25']],
                             ['para', ['ul', 'paragraph']],
+                            ['height', ['height']],
                             ['table', ['table']],
                             ['insert', ['link', 'picture','video']],
-                            ['remove', ['removeMedia']]
-
+                            ['remove', ['removeMedia']],
                         ],
                 callbacks: {
                     onImageUpload: function(files) {
+                        if( $('.note-editor').find("img").length > 20){
+                            alert('이미지는 최대 20장까지 업로드 가능합니다.');
+                            return false;
+                        }
                         sendFile(files[0]);
                     },
                     onMediaDelete : function($target, editor, $editable) {
@@ -50,12 +56,9 @@
             });
 
             $('input:radio[name="dig_code"]').change(function(){
-                if($(this).val() == 'D'){
-                    $("#div_origin").show();
-                }else{
-                    $("#div_origin").hide();
-                }
+                initOrigin( $(this).val() )
             })
+
 
             $('#sb_mod').click(function(){
                 var boardCategoryCode   = $('#board_category_code');
@@ -81,6 +84,14 @@
                 $('#f_mod').submit();
             })
         })
+
+        function initOrigin( dig_yn ){
+            if(dig_yn == 'C'){
+                $("#div_origin").hide();
+            }else{
+                $("#div_origin").show();
+            }
+        }
 
         function sendFile(file) {
             var data = new FormData();
@@ -178,12 +189,12 @@
                         </div>
                     </div>
                   </div>
-                <div class="row" id="div_origin" style="display:<%= boardOne[0].dig_code=='C'?'none':'' %>">
+                <div class="row" id="div_origin">
                     <div class="col-lg-9 col-lg-offset-1">
                         <div class="form-group">
                             <label class="col-lg-2 control-label">출처</label>
                             <div class="col-lg-10">
-                                <input type="text" class="form-control" id="origin" name='origin' maxlength="150" value="<%= boardOne[0].origin %>">
+                                <input type="text" class="form-control" id="origin" name='origin' maxlength="300" value="<%= boardOne[0].origin %>">
                             </div>
                         </div>
                     </div>

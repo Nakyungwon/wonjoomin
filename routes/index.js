@@ -145,7 +145,7 @@ router.get('/', async function(req, res, next) {
     `
       SELECT SM_MENU_ID
         FROM SM_MENU 
-       WHERE MENU_GBN = 'N'
+       WHERE MENU_GBN = 'S'
          AND INDEX_YN = 'Y'
          AND STAR_YN  = 'Y'
     `

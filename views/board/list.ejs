@@ -35,6 +35,10 @@
         <% include ../parts/menu %>
         <% if(menu_gbn == 'N'){%>
             <% include common_list %>
+        <% }else if(menu_gbn == 'S'){%>
+            <% include star_img_list %>
+        <% }else if(menu_gbn == 'H'){%>
+            <% include head_img_list %>
         <% }else{%>
             <% include photo_list %>
         <% }%>

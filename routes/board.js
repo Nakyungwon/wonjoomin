@@ -472,7 +472,7 @@ const boardList = async function(req, res, next){
               '관리자에 의해 삭제된 글입니다.'
             ELSE
               A.BOARD_TITLE
-            END                     AS BOARD_TITLE
+            END                       AS BOARD_TITLE
             ,A.USER_ID                AS USER_ID   
             ,A.NICK_NAME              AS NICK_NAME   
             ,A.CREATE_DATE            AS CREATE_DATE
@@ -482,6 +482,7 @@ const boardList = async function(req, res, next){
             ,COALESCE(B.BAD_GBN,0)    AS BAD_GBN
             ,A.BOARD_CATEGORY_NAME    AS BOARD_CATEGORY_NAME
             ,A.BOARD_CATEGORY_CODE    AS BOARD_CATEGORY_CODE
+            ,A.STAR                   AS STAR
             ,(
             SELECT COUNT(*)
               FROM BOARD_COMMENT B

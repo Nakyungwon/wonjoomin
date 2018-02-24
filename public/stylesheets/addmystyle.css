@@ -377,6 +377,13 @@
     .div_right-onejumin{
         position: relative;
     }
+
+    .list_thumb{
+        width: 70px !important;
+        height: 60px !important;
+        border: 1px solid #ddd;
+        margin-right: 5px
+    }
 }
 
 .form-group-onejumin .form-control-onejumin {
@@ -694,4 +701,14 @@
 
 .talker-photo i, .talker-photo img {
     float: left;
+}
+
+.list_thumb{
+    width: 60px;
+    height: 40px;
+    border: 1px solid #ddd;
+}
+
+.td_middle{
+    vertical-align: middle !important;
 }
