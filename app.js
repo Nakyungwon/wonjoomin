@@ -13,7 +13,6 @@ var passport    = require('./routes/passport');
 var index       = require('./routes/index');
 var users       = require('./routes/users');
 var board       = require('./routes/board');
-var pboard      = require('./routes/p_board');
 var message     = require('./routes/message');
 var admin       = require('./routes/admin');
 var db          = require('./routes/db');
@@ -47,7 +46,6 @@ app.use('/', index);
 app.use('/board', board);
 app.use('/users', users);
 app.use('/admin', admin);
-app.use('/p_board', pboard);
 app.use('/message', message);
 
 // catch 404 and forward to error handler

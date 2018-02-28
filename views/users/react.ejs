@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>원주민공포만화</title>
+    <meta data-n-head="true" charset="utf-8">
+    <meta data-n-head="true" name="viewport" content="width=device-width, user-scalable=yes, initial-scale=1.0, maximum-scale=3.0">
+    <link rel='stylesheet' href='/stylesheets/bootstrap.css' />
+    <link rel='stylesheet' href='/stylesheets/addmystyle.css' />
+    <link rel="stylesheet" href="/stylesheets/font-awesome-4.7.0/css/font-awesome.css" >
+    <script src="http://code.jquery.com/jquery-latest.min.js"></script>
+    <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
+    <script src="/javascripts/common.js"></script>
+    <script src="/javascripts/login.js"></script>
+    <script type="text/javascript">
+        function p_location(p_sm_menu_id,p_board_seq,p_comment_seq){
+            opener.location.href='/users/c_react?sm_menu_id='+p_sm_menu_id+'&board_seq='+p_board_seq+'&comment_seq='+p_comment_seq;
+            if(opener.window.innerWidth < 768){
+                window.close();
+            }
+        }
+    </script>
+  </head>
+  <body>
+    <div class="ko">
+        <div class="sub-title">
+            <h4>
+             <% if(!user_info.user_photo){%>
+             <i class="fa fa-user"></i>
+             <% }else{%>
+             <img src="<%=user_info.user_photo%>" alt="">
+             <% } %>
+             <%=user_info.nick_name%> 님의 내글반응</h4>
+        </div>
+        
+        <div class="btn-group btn-group-justified">
+            <% if(read_yn == 'Y') {%>
+            <a href="/users/react" style="background: #333; color: white" class="btn btn-sm btn-black">미확인 반응내역(7일)</a>
+            <a href="/users/react?read_yn=Y" style="background: #111; color: white" class="btn btn-sm btn-black">확인 반응내역(7일)</a>
+            <% }else{%>
+            <a href="/users/react" style="background: #111; color: white" class="btn btn-sm btn-black">미확인 반응내역(7일)</a>
+            <a href="/users/react?read_yn=Y" style="background: #333; color: white" class="btn btn-sm btn-black">확인 반응내역(7일)</a>
+            <% }%>
+            
+        </div>
+
+        <div class="myresponse-skin table-responsive" style="border-left:0px; border-right:0px;">
+            <table class="table table-hover" style="table-layout: fixed">
+                <colgroup>
+                    <col width="10%">
+                    <col width="40%">
+                    <col width="40%">
+                </colgroup>
+                
+                <tbody>
+                    <tr>
+                        <th class='text-center'>분류</th>
+                        <th class='text-center'>내글</th>
+                        <th class='text-center'>반응글</th>
+                    </tr>
+                    <% reactList.forEach(function(e){ %>
+                    <tr onclick="p_location('<%=e.sm_menu_id%>','<%=e.board_seq%>','<%=e.comment_seq%>')">
+                        <td><%= e.react_gbn=='C'?'댓글':'대댓글' %></td>
+                        <td><%= e.my_content%></td>
+                        <td><%= e.react_content%></td>
+                    </tr>
+                    <% }) %>
+                    <% if(reactList.length == 0){ %>
+                    <tr>
+                        <td colspan="3">
+                            <div class="text-center text-muted" style="padding:80px 0px;">등록된 내글반응이 없습니다.</div>
+                        </td>
+                    </tr>
+                    <% } %>
+                </tbody>
+                </table>
+        </div>
+        
+        <div class="clearfix"></div>
+        
+        <div class="text-center">
+            <ul class="pagination pagination-sm">
+                <li><a href='/users/react?pg=<%= pg-5 < 1 ? pg-(5+((pg-5))-1) : pg-5+(5-(pg%5==0?5:pg%5)) %>&read_yn=<%=read_yn%>'>&laquo;</a></li>
+                <% for(var i = start-1 ; i < (start+4 > end-1 ? end-1 : start +3 ) + 1  ; i ++ ) {%>
+                <li class="<%=i+1==pg?'active':''%>">
+                    <% if(pg - 1 == i ){ %>
+                        <a href='/users/react?pg=<%=i+1%>&read_yn=<%=read_yn%>'><%= i+1 %></a>
+                    <% } else if(pg-1 != i){ %>
+                        <a href='/users/react?pg=<%=i+1%>&read_yn=<%=read_yn%>'><%= i+1 %></a>
+                    <% } %>
+                </li>
+                <% } %>
+                <li><a href='/users/react?pg=<%= (pg+5 > end) ? pg+(5-((pg+5)-end)) : pg+(5-((pg%5==0?5:pg%5)-1))  %>&read_yn=<%=read_yn%>'>&raquo;</a></li>
+            </ul>
+        </div>
+        
+        <p class="text-center">
+            <a class="btn btn-black btn-sm" href="#" onclick="window.close();">닫기</a>
+        </p>
+        </div>
+  </body>
+</html>

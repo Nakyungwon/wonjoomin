@@ -224,8 +224,8 @@
             edtRecommdStr +=            '<div class="col-sm-2">'
             edtRecommdStr +=                '<div class="form-group-onejumin" style="margin-top: 5%">'
             if(!isValid2(logInfo)){
-                edtRecommdStr +=                    '<input type="text"     name="recomment_nick_name"   id="recomment_nick_name"   class="form-control-onejumin" placeholder="닉네임">'
-                edtRecommdStr +=                    '<input type="password" name="recomment_password"    id="recomment_password"    class="form-control-onejumin" placeholder="비밀번호">'
+                edtRecommdStr +=                    '<input type="text"     name="recomment_nick_name"   id="recomment_nick_name"   maxlength="5"  class="form-control-onejumin" placeholder="닉네임">'
+                edtRecommdStr +=                    '<input type="password" name="recomment_password"    id="recomment_password"    maxlength="12" class="form-control-onejumin" placeholder="비밀번호">'
             }else{
                 edtRecommdStr +=                    '<label><h6 style="font-weight: bold">'+log_nickname+'</h6></label>' 
             }
@@ -234,7 +234,7 @@
             edtRecommdStr +=            '</div>'
             edtRecommdStr +=            '<div class="col-sm-9">'
             edtRecommdStr +=                '<div class="form-group-onejumin">'
-            edtRecommdStr +=                    '<textarea class="form-control-onejumin" style="height: 75px;" name="recomment_content"  id="recomment_content"></textarea>'
+            edtRecommdStr +=                    '<textarea class="form-control-onejumin" style="height: 75px;" name="recomment_content" maxlength="1000" id="recomment_content" placeholder="댓글은 맑고 자신있게 1000자 이내로 써 주세요"></textarea>'
             edtRecommdStr +=                '</div>'
             edtRecommdStr +=            '</div>'
             edtRecommdStr +=            '<div class="text-right div_board_btn">'
@@ -1008,7 +1008,7 @@
                     </div>
                     <div class="col-sm-9">
                         <div class="form-group-onejumin">
-                            <textarea class="form-control-onejumin" style="height: 75px;" name='comment_content'  id='comment_content' maxlength="100" placeholder="100자이내"></textarea>
+                            <textarea class="form-control-onejumin" style="height: 75px;" name='comment_content'  id='comment_content' maxlength="1000" placeholder="댓글은 맑고 자신있게 1000자 이내로 써 주세요"></textarea>
                         </div>
                     </div>
                     <div class="text-right div_board_btn">
@@ -1060,12 +1060,12 @@
                     <li class="list-group-item" style="padding:2px 2px 2px 2px" id="message_edit">
                     <span class="tag tag-default tag-pill float-xs-right" >쪽지보내기</span>
                     </li>
-                    <li class="list-group-item" style="padding:2px 2px 2px 2px" id="user_board_list">
+                    <!-- <li class="list-group-item" style="padding:2px 2px 2px 2px" id="user_board_list">
                     <span class="tag tag-default tag-pill float-xs-right" >작성자글보기</span>
                     </li>
                     <li class="list-group-item" style="padding:2px 2px 2px 2px" id="user_except">
                     <span class="tag tag-default tag-pill float-xs-right" >작성자차단하기</span>
-                    </li>
+                    </li> -->
                     <li class="list-group-item" style="padding:2px 2px 2px 2px" id="block_user">
                     <span class="tag tag-default tag-pill float-xs-right" >차단하기</span>
                     </li>

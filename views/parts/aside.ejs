@@ -3,6 +3,10 @@
     $("#reg_photo").click(function(){
       window.open("/users/user_photo","","top=100 left=100 width=305 height=400");
     })
+
+    $("#react").click(function(){
+      window.open("/users/react","","top=100 left=100 width=700 height=500");
+    })
 	})
 </script>
 <aside class="ko" id="sidebar-box" style="right: -320px;">
@@ -92,8 +96,8 @@
         <b>회원</b>
       </div>
       <ul class="sidebar-list list-links">
-        <li><a href="/users/join">회원가입</a></li>
-        <li><a href="#" id='forgot_password'>비밀번호찾기</a></li>
+        <li><a class="b_color" href="/users/join">회원가입</a></li>
+        <li><a class="b_color" href="#" id='forgot_password'>비밀번호찾기</a></li>
       </ul>
       <% } else { %>
       <div class="div-title-underline-thin en">
@@ -101,6 +105,7 @@
       </div>
       <ul class="sidebar-list list-links">
         <li><a class="b_color" href="/message/message_list?list=R">쪽지함<span class="badge" id="message_cnt"></span></a></li>
+        <li><a class="b_color cursor-onejumin" id="react">내글 반응 보기</a></li>
         <li><a class="b_color" href="/users/myList">내가 쓴글 보기</a></li>
         <li><a class="b_color" href="/users/wardList">와드 박은글 보기</a></li>
         <li><a class="b_color" href="/users/myinfo">내정보 수정</a></li>

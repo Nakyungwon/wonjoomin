@@ -82,7 +82,7 @@ module.exports = {
                     ,SM_MENU D
               WHERE A.SM_MENU_ID        = D.SM_MENU_ID
               AND A.USE_YN              = 'Y'
-              AND A.SM_MENU_ID          = 'M0103'
+              AND D.SM_MENU_NAME        = '공지사항'
               ORDER BY A.CREATE_DATE DESC
               LIMIT 5 OFFSET 0
                 `

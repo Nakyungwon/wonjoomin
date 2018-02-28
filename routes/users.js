@@ -94,7 +94,7 @@ const boardList = async function(req, res, next){
     ,[req.user.user_id,field]
   )
 
-  var cnt   = pageList.rows[0].cnt;
+  var cnt   = pageList.rows[0].cnt == 0 ? 1 : pageList.rows[0].cnt;
   var start = page - (page-1)%5;  
   var end   = Math.floor(cnt/15) + (cnt%15 == 0?0:1);
 
@@ -195,7 +195,7 @@ const wardList = async function(req, res, next){
     ,[req.user.user_id,field]
   )
 
-  var cnt   = pageList.rows[0].cnt;
+  var cnt   = pageList.rows[0].cnt == 0?1:pageList.rows[0].cnt;
   var start = page - (page-1)%5;  
   var end   = Math.floor(cnt/15) + (cnt%15 == 0?0:1);
 
@@ -777,6 +777,109 @@ router.post('/user_photo', function(req, res, next) {
       }
     }
   })
+});
+
+/**
+ * 내글 반응보기
+ */
+router.get('/react', async function(req, res, next) {
+  let {read_yn} = req.query
+
+  read_yn = read_yn==null?'N':read_yn 
+  var page = 1;
+  var pg = req.param("pg");    			    	
+  if(pg != null && !pg == ""){
+    page = Number(pg);
+  }
+  var srow = 0+ (page-1)*7;
+
+  var pageList = await db.query(
+    `
+      SELECT A.REACT_GBN
+             ,A.MY_CONTENT
+             ,A.REACT_CONTENT
+             ,A.SM_MENU_ID
+             ,A.BOARD_SEQ
+             ,A.COMMENT_SEQ
+        FROM BOARD_REACT A
+       WHERE A.USER_ID = $1
+         AND A.READ_YN = $2
+         AND now() - A.CREATE_DATE <= '7days'
+      ORDER BY A.CREATE_DATE DESC
+    `
+    ,[
+      req.user.user_id
+      ,read_yn
+    ]
+  )
+
+  var reactList = await db.query(
+    `
+      SELECT A.REACT_GBN
+             ,A.MY_CONTENT
+             ,A.REACT_CONTENT
+             ,A.SM_MENU_ID
+             ,A.BOARD_SEQ
+             ,A.COMMENT_SEQ
+        FROM BOARD_REACT A
+       WHERE A.USER_ID = $1
+         AND A.READ_YN = $2
+         AND now() - A.CREATE_DATE <= '7days'
+      ORDER BY A.CREATE_DATE DESC
+      LIMIT 7 OFFSET $3
+    `
+    ,[
+      req.user.user_id
+      ,read_yn
+      ,srow
+    ]
+  )
+
+  if(pageList.rows.length == 0){
+    var cnt = 1
+  }else{
+    var cnt = pageList.rows.length;
+  }
+  var start = page - (page-1)%5;  
+  var end   = Math.floor(cnt/7) + (cnt%7 == 0?0:1);
+  res.render("users/react",{user_info   :req.user
+                            ,reactList  :reactList.rows
+                            ,cnt        : cnt
+                            ,pg         : page
+                            ,start      : start
+                            ,end        : end
+                            ,read_yn    : read_yn
+  });
+  
+});
+
+/**
+ * 내글 반응에서 해당 게시물이동
+ */
+router.get('/c_react', function(req, res, next) {
+  if(!req.user ){
+    res.render('main/error',{user_info   : req.user})
+  }else{
+  let{sm_menu_id,board_seq,comment_seq} = req.query
+      db.query(
+        `
+          UPDATE BOARD_REACT SET
+          READ_YN = 'Y'
+          WHERE SM_MENU_ID  = $1
+          AND BOARD_SEQ     = $2
+          AND COMMENT_SEQ   = $3
+          AND USER_ID       = $4
+        `
+        ,[
+          sm_menu_id
+         ,board_seq
+         ,comment_seq
+         ,req.user.user_id
+        ]
+      ).then( function(){
+        res.redirect('/board/view?sm_menu_id='+sm_menu_id+'&board_seq='+board_seq);
+      })
+  }
 });
 
 module.exports = router;

@@ -709,6 +709,29 @@
     border: 1px solid #ddd;
 }
 
+.sub-title {
+    padding: 10px 12px;
+    border-top: 4px solid #444;
+}
+.sub-title img {
+    border-radius: 50%;
+    width: 50px !important;
+    height: 50px !important;
+    display: inline-block;
+}
+
+.sub-title i {
+    background: rgb(245, 245, 245);
+    padding-top: 12px;
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    text-align: center;
+    color: rgb(143, 143, 143);
+    font-size: 25px;
+    display: inline-block;
+}
+
 .td_middle{
     vertical-align: middle !important;
 }

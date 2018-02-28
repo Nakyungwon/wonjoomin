@@ -292,6 +292,103 @@ const commentList = async function(req, res, next){
   return rtnJson;
 }
 
+const insertReact = async function(req, res, next,commentSeq){
+  let {k_menuId,k_boardSeq,k_commentNickName,k_commnetPassword,k_recommentParentSeq,k_commentContent } = req.body
+  let ip =  ipaddr.process(req.header('x-forwarded-for')||req.connection.remoteAddress).toString();
+  let board_user = ''
+
+  /* 게시판에대한 반응인지 댓글에 대한 반응인지 체크 */
+  if(k_recommentParentSeq == null){
+    board_user = await db.query(
+      `
+        SELECT 'C'           AS REACT_GBN
+              ,A.USER_YN     AS USER_YN
+              ,A.USER_ID     AS USER_ID
+              ,A.BOARD_TITLE AS MY_CONTENT
+          FROM BOARD A
+               ,ONEJUMIN_USER B
+         WHERE A.USER_ID    = B.USER_ID
+           AND A.SM_MENU_ID = $1
+           AND A.BOARD_SEQ  = $2
+      `
+      ,[k_menuId,k_boardSeq]
+    )
+  }else{
+     board_user = await db.query(
+      `
+        SELECT 'R'               AS REACT_GBN
+              ,A.USER_YN         AS USER_YN
+              ,A.USER_ID         AS USER_ID
+              ,A.COMMENT_CONTENT AS MY_CONTENT
+          FROM BOARD_COMMENT A
+              ,ONEJUMIN_USER B
+         WHERE A.USER_ID    = B.USER_ID
+           AND A.SM_MENU_ID = $1
+           AND A.BOARD_SEQ  = $2
+           AND A.COMMENT_SEQ = $3
+      `
+      ,[k_menuId,k_boardSeq,k_recommentParentSeq]
+    )
+  }
+
+  if(board_user.rows.length > 0 ){
+    if(board_user.rows[0].user_yn == 'Y'){
+      /* 자기글에 자기가 댓글달면 자기반응글 생성안함 */
+      if(req.user){
+        if(req.user.user_id == board_user.rows[0].user_id){
+          return;
+        }
+      }
+      /* 자기글에 자기가 댓글달면 자기반응글 생성안함 */
+      let commentList = await db.query(
+        `
+          INSERT INTO BOARD_REACT
+          (
+            SM_MENU_ID   
+            ,BOARD_SEQ
+            ,COMMENT_SEQ
+            ,USER_ID
+            ,REACT_GBN
+            ,MY_CONTENT   
+            ,REACT_CONTENT
+            ,READ_YN      
+            ,CREATE_IP    
+            ,CREATE_DATE  
+            ,UPDATE_IP    
+            ,UPDATE_DATE  
+          )
+          VALUES(
+            $1
+            ,$2
+            ,$3
+            ,$4
+            ,$5
+            ,$6
+            ,$7
+            ,$8
+            ,$9
+            ,timezone('KST'::text, now())
+            ,$10
+            ,timezone('KST'::text, now())
+          )
+        `
+        ,[
+          k_menuId
+          ,k_boardSeq
+          ,commentSeq
+          ,board_user.rows[0].user_id
+          ,board_user.rows[0].react_gbn
+          ,board_user.rows[0].my_content
+          ,k_commentContent
+          ,'N'
+          ,ip
+          ,ip
+        ]
+      )
+    }
+  }
+}
+
 /**
  *  좋아요 반대 개수 찾는 함수 
  */
@@ -377,6 +474,17 @@ const commentDel = async function(req, res, next){
       ,[req.param('user_id'),ip,req.param('k_menuId'),req.param('k_boardSeq'),req.param('k_commentSeq')]
     )
   }
+
+  await db.query(
+    `
+      DELETE 
+        FROM BOARD_REACT
+       WHERE SM_MENU_ID   = $1
+       AND BOARD_SEQ    = $2
+       AND COMMENT_SEQ  = $3
+    `
+    ,[req.param('k_menuId'),req.param('k_boardSeq'),req.param('k_commentSeq')]
+  )
 }
 /**
  * 게시판리스트 공통(리스트 화면 , 상세 밑에)
@@ -624,7 +732,7 @@ const boardList = async function(req, res, next){
     ,[req.param('sm_menu_id')]
   )
 
-  var cnt   = pageList.rows[0].cnt;
+  var cnt   = pageList.rows[0].cnt == 0?1:pageList.rows[0].cnt;
   //var cnt   = boardList.rows.length
   var start = page - (page-1)%5;  
   var end   = Math.floor(cnt/15) + (cnt%15 == 0?0:1);
@@ -1021,7 +1129,7 @@ router.get('/view', async function(req, res, next) {
 
   boardList(req, res, next).then(
     function(rtnList){
-      boardOne.rows[0].create_date = moment(boardOne.rows[0].create_date).format('YYYY-MM-DD')
+      boardOne.rows[0].create_date = moment(boardOne.rows[0].create_date).format('YYYY-MM-DD HH:mm')
       boardOne.rows[0].create_ip = boardOne.rows[0].create_ip.split('.')[0]+'.'+boardOne.rows[0].create_ip.split('.')[1]+'.*.*'
       res.render('./board/view',{boardList      : rtnList.boardList
                                 ,boardnotiList  : rtnList.boardnotiList
@@ -1292,6 +1400,7 @@ router.post('/comment_list', function(req, res, next) {
  */
 router.post('/comment_edit', function(req, res, next) {
   var ip =  ipaddr.process(req.header('x-forwarded-for')||req.connection.remoteAddress).toString();
+  var commentSeq = ''
   let { k_menuId,k_boardSeq,k_commentNickName,k_commnetPassword,k_recommentParentSeq,k_commentContent } = req.body
   db.query(
     `
@@ -1326,83 +1435,105 @@ router.post('/comment_edit', function(req, res, next) {
       req.flash('errMsg','비회원은 하루에 10개의 댓글을 작성할 수 있습니다.');
       res.send({errMsg:req.flash('errMsg')})
     }else{
-      db.query(
-        `
-          INSERT INTO BOARD_COMMENT(
-           COMMENT_SEQ       
-           ,BOARD_SEQ         
-           ,SM_MENU_ID        
-           ,USER_ID           
-           ,NICK_NAME 
-           ,PASSWORD        
-           ,USER_YN           
-           ,USER_GRADE        
-           ,USE_YN            
-           ,COMMENT_CONTENT   
-           ,CREATE_ID         
-           ,CREATE_DATE       
-           ,CREATE_IP         
-           ,UPDATE_ID         
-           ,UPDATE_DATE       
-           ,UPDATE_IP         
-           ,PARENT_COMMENT_SEQ
-          )
-          VALUES(
-           (SELECT COALESCE(MAX(COMMENT_SEQ),0) + 1 FROM  BOARD_COMMENT WHERE SM_MENU_ID = $1 AND BOARD_SEQ = $2)
-           ,$2
-           ,$1
-           ,$3
-           ,$4
-           ,$7
-           ,$9
-           ,$10
-           ,'Y'
-           ,$5
-           ,$3
-           ,timezone('KST'::text, now())
-           ,$6
-           ,$3
-           ,timezone('KST'::text, now())
-           ,$6
-           ,$8
-          )
-        `
-        ,[
-          k_menuId
-         ,k_boardSeq
-         ,req.user==null?null:req.user.user_id
-         ,req.user==null?k_commentNickName:req.user.nick_name
-         ,k_commentContent
-         ,ip
-         ,k_commnetPassword!=null?crypto.createHash('sha512').update(k_commnetPassword).digest('base64'):null
-         ,k_recommentParentSeq
-         ,req.user==null?'N':'Y'
-         ,req.user==null?null:req.user.user_grade
-       ]
-      ).then( function(rtn){
-         commentList(req, res, next).then(
-           function(commentList){
-             for(var i = 0 ;  i < commentList.rtn_commentList.length ; i ++){
-              commentList.rtn_commentList[i].create_ip = commentList.rtn_commentList[i].create_ip.split('.')[0] + "." + commentList.rtn_commentList[i].create_ip.split('.')[1] + ".*.*"
-               if(moment(new Date()).format('YYYYMMDD') === moment(commentList.rtn_commentList[i].create_date).format('YYYYMMDD')){
-                 commentList.rtn_commentList[i].create_date = moment(commentList.rtn_commentList[i].create_date).fromNow();
-               }else{
-                 commentList.rtn_commentList[i].create_date = moment(commentList.rtn_commentList[i].create_date).format('YYYY-MM-DD');
+        db.query(
+          `
+            SELECT COALESCE(MAX(COMMENT_SEQ),0) + 1 as comment_seq
+              FROM BOARD_COMMENT 
+            WHERE SM_MENU_ID = $1 
+              AND BOARD_SEQ = $2
+          `
+          ,[
+            k_menuId
+           ,k_boardSeq
+          ]
+      ).then(
+        function(comment_seq){
+          commentSeq = comment_seq.rows[0].comment_seq
+          db.query(
+            `
+              INSERT INTO BOARD_COMMENT(
+               COMMENT_SEQ       
+               ,BOARD_SEQ         
+               ,SM_MENU_ID        
+               ,USER_ID           
+               ,NICK_NAME 
+               ,PASSWORD        
+               ,USER_YN           
+               ,USER_GRADE        
+               ,USE_YN            
+               ,COMMENT_CONTENT   
+               ,CREATE_ID         
+               ,CREATE_DATE       
+               ,CREATE_IP         
+               ,UPDATE_ID         
+               ,UPDATE_DATE       
+               ,UPDATE_IP         
+               ,PARENT_COMMENT_SEQ
+              )
+              VALUES(
+               $11
+               ,$2
+               ,$1
+               ,$3
+               ,$4
+               ,$7
+               ,$9
+               ,$10
+               ,'Y'
+               ,$5
+               ,$3
+               ,timezone('KST'::text, now())
+               ,$6
+               ,$3
+               ,timezone('KST'::text, now())
+               ,$6
+               ,$8
+              )
+            `
+            ,[
+              k_menuId
+             ,k_boardSeq
+             ,req.user==null?null:req.user.user_id
+             ,req.user==null?k_commentNickName:req.user.nick_name
+             ,k_commentContent
+             ,ip
+             ,k_commnetPassword!=null?crypto.createHash('sha512').update(k_commnetPassword).digest('base64'):null
+             ,k_recommentParentSeq
+             ,req.user==null?'N':'Y'
+             ,req.user==null?null:req.user.user_grade
+             ,comment_seq.rows[0].comment_seq
+           ]
+          ).then( function(rtn){
+             insertReact(req, res, next, commentSeq).then(
+               function(){
+                  /* view에 다시그릴 commentList */
+                  commentList(req, res, next).then(
+                    function(commentList){
+                      for(var i = 0 ;  i < commentList.rtn_commentList.length ; i ++){
+                      commentList.rtn_commentList[i].create_ip = commentList.rtn_commentList[i].create_ip.split('.')[0] + "." + commentList.rtn_commentList[i].create_ip.split('.')[1] + ".*.*"
+                        if(moment(new Date()).format('YYYYMMDD') === moment(commentList.rtn_commentList[i].create_date).format('YYYYMMDD')){
+                          commentList.rtn_commentList[i].create_date = moment(commentList.rtn_commentList[i].create_date).fromNow();
+                        }else{
+                          commentList.rtn_commentList[i].create_date = moment(commentList.rtn_commentList[i].create_date).format('YYYY-MM-DD');
+                        }
+                      }
+        
+                      for(var i = 0 ;  i < commentList.rtn_commentBestList.length ; i ++){
+                      commentList.rtn_commentBestList[i].create_ip = commentList.rtn_commentBestList[i].create_ip.split('.')[0] + "." + commentList.rtn_commentBestList[i].create_ip.split('.')[1] + ".*.*"
+                      if(moment(new Date()).format('YYYYMMDD') === moment(commentList.rtn_commentBestList[i].create_date).format('YYYYMMDD')){
+                        commentList.rtn_commentBestList[i].create_date = moment(commentList.rtn_commentBestList[i].create_date).fromNow();
+                      }else{
+                        commentList.rtn_commentBestList[i].create_date = moment(commentList.rtn_commentBestList[i].create_date).format('YYYY-MM-DD');
+                      }
+                    }
+                    res.send({commentList:commentList.rtn_commentList ,commentBestList:commentList.rtn_commentBestList})
+                    });
+                    /* view에 다시그릴 commentList 끝 */
                }
-             }
-
-             for(var i = 0 ;  i < commentList.rtn_commentBestList.length ; i ++){
-              commentList.rtn_commentBestList[i].create_ip = commentList.rtn_commentBestList[i].create_ip.split('.')[0] + "." + commentList.rtn_commentBestList[i].create_ip.split('.')[1] + ".*.*"
-              if(moment(new Date()).format('YYYYMMDD') === moment(commentList.rtn_commentBestList[i].create_date).format('YYYYMMDD')){
-                commentList.rtn_commentBestList[i].create_date = moment(commentList.rtn_commentBestList[i].create_date).fromNow();
-              }else{
-                commentList.rtn_commentBestList[i].create_date = moment(commentList.rtn_commentBestList[i].create_date).format('YYYY-MM-DD');
-              }
-            }
-      
-            res.send({commentList:commentList.rtn_commentList ,commentBestList:commentList.rtn_commentBestList})
-           });
-      })
+             )
+          })
+        }
+      )
     }
   })
 });

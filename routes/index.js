@@ -320,7 +320,7 @@ router.get('/', async function(req, res, next) {
 });
 
 /**
- * header 세부메뉴 클릭시 세팅
+ * header 인기글 리스트
  */
 router.post('/idx_hot_list', async function(req, res, next) {
   const { k_hot_seq } = req.body
@@ -341,6 +341,7 @@ router.post('/idx_hot_list', async function(req, res, next) {
               FROM BOARD_COMMENT B
             WHERE B.BOARD_SEQ  = A.BOARD_SEQ
               AND B.SM_MENU_ID = A.SM_MENU_ID
+              AND B.USE_YN     != 'N'
           ) AS COMMENT_CNT
           ,CASE WHEN A.BOARD_CONTENT LIKE '%<img%' THEN
             'Y'
@@ -380,7 +381,7 @@ router.post('/idx_hot_list', async function(req, res, next) {
 });
 
 /**
- * header 세부메뉴 클릭시 세팅
+ * 베스트글 리스트
  */
 router.post('/idx_best_list', async function(req, res, next) {
   const { k_best_seq } = req.body
@@ -403,6 +404,7 @@ router.post('/idx_best_list', async function(req, res, next) {
               FROM BOARD_COMMENT B
             WHERE B.BOARD_SEQ  = A.BOARD_SEQ
               AND B.SM_MENU_ID = A.SM_MENU_ID
+              AND B.USE_YN     != 'N'
           ) AS COMMENT_CNT
           ,CASE WHEN A.BOARD_CONTENT LIKE '%<img%' THEN
             'Y'
